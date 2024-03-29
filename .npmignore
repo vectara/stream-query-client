@@ -1,0 +1,7 @@
+src/
+node_modules/
+
+.DS_Store
+build.js
+tsconfig.json
+tsconfig.tsbuildinfo
