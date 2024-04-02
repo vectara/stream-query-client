@@ -52,7 +52,7 @@ const sendQuery = async () => {
 };
 ```
 
-For more information on configuration options and callback types, see [the type definitions](src/types.ts) and our [Query API documentation](https://docs.vectara.com/docs/api-reference/search-apis/search).
+For more information on configuration options and callback types, see [the type definitions](src/types.ts) and our [Query API documentation](https://docs.vectara.com/docs/api-reference/search-apis/stream-query).
 
 ## License
 

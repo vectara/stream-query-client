@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "A utility to conveniently send and receive data to/from Vectara's streaming query API.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
     "test": "test",
     "build": "npm run clean && node build.js && tsc --emitDeclarationOnly --outDir lib",
