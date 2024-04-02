@@ -1,5 +1,6 @@
 src/
 node_modules/
+images/
 
 .DS_Store
 build.js

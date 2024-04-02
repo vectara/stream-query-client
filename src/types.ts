@@ -38,14 +38,84 @@ export type ParsedResult = {
   };
 };
 
-export type StreamUpdateHandler = (update: StreamUpdate) => void;
+export type StreamQueryConfig = {
+  filter?: string;
+
+  // The query to send to the API.
+  // This is the user input.
+  queryValue?: string;
+
+  // The language the summary should be in.
+  language?: SummaryLanguage;
+
+  rerank?: boolean;
+  rerankNumResults?: number;
+  rerankerId?: number;
+  rerankDiversityBias?: number;
+
+  hybridNumWords: number;
+  hybridLambdaShort?: number;
+  hybridLambdaLong?: number;
+
+  // The number of search results to include in creating the summary
+  summaryNumResults?: number;
+
+  // For summary references, this is the number of sentences to include before/after
+  // relevant reference snippets.
+  summaryNumSentences?: number;
+
+  // The preferred prompt to use, if applicable
+  summaryPromptName?: string;
+
+  // The customer ID of the Vectara corpora owner
+  customerId: string;
+
+  // IDs of Vectara corpora to include in the query
+  corpusIds: Array<string>;
+
+  // The Vectara query API key for provided corpus IDs
+  apiKey: string;
+
+  // An optional endpoint to send the query to.
+  // Used if proxying the Vectara API URL behind a custom server.
+  endpoint?: string;
+
+  // Chat configuration.
+  chat?: ChatConfig;
+};
+
+type ChatConfig = {
+  // true, if this query is a chat query
+  store: boolean;
+
+  // A string representing an existing chat conversation.
+  // Provide this to maintain the context of a previous conversation.
+  conversationId?: string;
+};
 
 export type StreamUpdate = {
+  // A list of references that apply to the query response.
   references: Array<DeserializedSearchResult> | null;
-  chat: Chat | null;
+
+  // A concatenation of all text chunks the streaming API has returned so far.
+  // Use this when updating your UI text display.
   updatedText: string | null;
-  done: boolean;
+
+  // true, if streaming has completed.
+  isDone: boolean;
+
+  // Any additional that apply the query response.
+  detail: StreamUpdateDetail;
 };
+
+type StreamUpdateDetail = {
+  // The category of the accompanying data, specified for easy parsing.
+  // This will be expanded upon as more types of details are available.
+  type: "chat";
+  data: Chat;
+} | null;
+
+export type StreamUpdateHandler = (update: StreamUpdate) => void;
 
 export type SearchResponse = {
   document: Array<SearchResponseDoc>;
