@@ -15,5 +15,5 @@ build({
   target: ["esnext", "node12.22.0"],
   outdir: "./lib",
   outbase: "./src",
-  format: "esm",
+  format: "cjs",
 });
