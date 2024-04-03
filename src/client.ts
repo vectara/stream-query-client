@@ -130,7 +130,7 @@ export const streamQuery = async (
 };
 
 const getChat = (parsedResult: ParsedResult): Chat | null => {
-  if (!parsedResult.summary) return null;
+  if (!parsedResult.summary || !parsedResult.summary.chat) return null;
 
   return {
     conversationId: parsedResult.summary.chat.conversationId,
