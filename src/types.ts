@@ -48,14 +48,24 @@ export type StreamQueryConfig = {
   // The language the summary should be in.
   language?: SummaryLanguage;
 
+  // Reranking orders your search results for increased relevance.
   rerank?: boolean;
+
+  // Specify how many search results to retrieve and rerank.
   rerankNumResults?: number;
+
+  // Which reranker will be used.
   rerankerId?: number;
+
+  // Diversity bias ranges from 0 to 1.
+  // 0 will optimize for results that are as closely related to the query as possible.
+  // 1 will optimize for results that are as diverse as possible.
   rerankDiversityBias?: number;
 
-  hybridNumWords: number;
-  hybridLambdaShort?: number;
-  hybridLambdaLong?: number;
+  // A number from 0.0 -> 1.0 that determines how much to leverage neural search and keyword search.
+  // A value of 0.0 is purely neural search, where a value of 1.0 is purely keyword search.
+  // Numbers in between are a combination of the two, leaning one way or another.
+  lambda?: number;
 
   // The number of search results to include in creating the summary
   summaryNumResults?: number;

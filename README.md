@@ -4,7 +4,7 @@
 
 # Stream-Query-Client
 
-Stream-Query-Client is the easiest way to use Vectara's streaming query API. Simply provide a query configuration and a callback to instantly receive stream updates.
+Stream-Query-Client is the easiest way to use Vectara's streaming query API in your JavaScript applications. Simply provide a query configuration and a callback to instantly receive stream updates.
 
 > [!TIP]
 >

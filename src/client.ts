@@ -20,23 +20,43 @@ export const streamQuery = async (
     "Content-Type": "application/json",
   };
 
-  const lambda =
-    typeof config.queryValue === "undefined" ||
-    config.queryValue.trim().split(" ").length > config.hybridNumWords
-      ? config.hybridLambdaLong
-      : config.hybridLambdaShort;
+  // Normalizes lambda to ensure that:
+  // - lambda is between 0 and 1
+  // - lambda is always a positive number
+  let normalizedLambda = config.lambda ?? 0.025;
+  if (normalizedLambda > 1) {
+    normalizedLambda = 1.0;
+  } else if (normalizedLambda < 0) {
+    normalizedLambda = 0;
+  }
+
   const corpusKeyList = config.corpusIds.map((id) => {
     return {
       customerId: config.customerId,
       corpusId: id,
       lexicalInterpolationConfig: {
-        lambda: lambda,
+        lambda: normalizedLambda,
       },
       metadataFilter: config.filter
         ? `doc.source = '${config.filter}'`
         : undefined,
     };
   });
+
+  const rerankingConfig = !config.rerank
+    ? {}
+    : {
+        rerankingConfig: {
+          rerankerId: config.rerankerId,
+          ...(config.rerankerId === 272725718
+            ? {
+                mmrConfig: {
+                  diversityBias: config.rerankDiversityBias,
+                },
+              }
+            : {}),
+        },
+      };
 
   const requestBody = JSON.stringify({
     query: [
@@ -62,20 +82,7 @@ export const streamQuery = async (
             },
           },
         ],
-        ...(config.rerank
-          ? {
-              rerankingConfig: {
-                rerankerId: config.rerankerId,
-                ...(config.rerankerId === 272725718
-                  ? {
-                      mmrConfig: {
-                        diversityBias: config.rerankDiversityBias,
-                      },
-                    }
-                  : {}),
-              },
-            }
-          : {}),
+        ...rerankingConfig,
       },
     ],
   });
