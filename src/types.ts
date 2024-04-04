@@ -77,6 +77,9 @@ export type StreamQueryConfig = {
   // The preferred prompt to use, if applicable
   summaryPromptName?: string;
 
+  // enable the HHEMv2 (based on https://huggingface.co/vectara/hallucination_evaluation_model), also known as factual consistency score
+  summaryEnableFactualConsistencyScore?: boolean
+
   // The customer ID of the Vectara corpora owner
   customerId: string;
 

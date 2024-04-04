@@ -76,6 +76,7 @@ export const streamQuery = async (
             responseLang: config.language,
             maxSummarizedResults: config.summaryNumResults,
             summarizerPromptName: config.summaryPromptName,
+            factualConsistencyScore: config.summaryEnableFactualConsistencyScore ?? false,
             chat: {
               store: config.chat?.store ?? false,
               conversationId: config.chat?.conversationId,
