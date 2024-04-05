@@ -3,6 +3,13 @@ export type Chat = {
   turnId: string;
 };
 
+export type ChatDetail = {
+  // The category of the accompanying data, specified for easy parsing.
+  // This will be expanded upon as more types of details are available.
+  type: "chat";
+  data: Chat;
+};
+
 export type DeserializedSearchResult = {
   id: string;
   snippet: {
@@ -14,6 +21,15 @@ export type DeserializedSearchResult = {
   url?: string;
   title?: string;
   metadata: Record<string, unknown>;
+};
+
+export type FactualConsistency = {
+  score: number;
+};
+
+export type FactualConsistencyDetail = {
+  type: "factualConsistency";
+  data: FactualConsistency;
 };
 
 // A subset of the Vectara query response, in parsed form.
@@ -33,6 +49,7 @@ export type ParsedResult = {
   };
   summary: {
     chat: Chat;
+    factualConsistency: FactualConsistency | null;
     done: boolean;
     text: string;
   };
@@ -77,8 +94,8 @@ export type StreamQueryConfig = {
   // The preferred prompt to use, if applicable
   summaryPromptName?: string;
 
-  // enable the HHEMv2 (based on https://huggingface.co/vectara/hallucination_evaluation_model), also known as factual consistency score
-  summaryEnableFactualConsistencyScore?: boolean
+  // Enable the HHEMv2 (based on https://huggingface.co/vectara/hallucination_evaluation_model), also known as factual consistency score
+  enableFactualConsistencyScore?: boolean;
 
   // The customer ID of the Vectara corpora owner
   customerId: string;
@@ -117,16 +134,11 @@ export type StreamUpdate = {
   // true, if streaming has completed.
   isDone: boolean;
 
-  // Any additional that apply the query response.
-  detail: StreamUpdateDetail;
+  // Any additional details that apply to the query response.
+  details: Array<StreamUpdateDetail> | null;
 };
 
-type StreamUpdateDetail = {
-  // The category of the accompanying data, specified for easy parsing.
-  // This will be expanded upon as more types of details are available.
-  type: "chat";
-  data: Chat;
-} | null;
+export type StreamUpdateDetail = ChatDetail | FactualConsistencyDetail;
 
 export type StreamUpdateHandler = (update: StreamUpdate) => void;
 

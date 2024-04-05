@@ -1,8 +1,12 @@
 import {
   Chat,
+  ChatDetail,
+  FactualConsistency,
+  FactualConsistencyDetail,
   ParsedResult,
   StreamQueryConfig,
   StreamUpdate,
+  StreamUpdateDetail,
   StreamUpdateHandler,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
@@ -76,7 +80,8 @@ export const streamQuery = async (
             responseLang: config.language,
             maxSummarizedResults: config.summaryNumResults,
             summarizerPromptName: config.summaryPromptName,
-            factualConsistencyScore: config.summaryEnableFactualConsistencyScore ?? false,
+            factualConsistencyScore:
+              config.enableFactualConsistencyScore ?? false,
             chat: {
               store: config.chat?.store ?? false,
               conversationId: config.chat?.conversationId,
@@ -107,17 +112,23 @@ export const streamQuery = async (
 
           if (!dataObj.result) return;
 
-          const chatData = getChat(dataObj.result);
+          const chatDetail = getChatDetail(dataObj.result);
+          const fcsDetail = getFactualConsistencyDetail(dataObj.result);
+          let details: Array<StreamUpdateDetail> | null = null;
+
+          [chatDetail, fcsDetail].forEach(
+            (detail: ChatDetail | FactualConsistencyDetail | null) => {
+              if (!detail) return;
+
+              details = details ?? [];
+              details.push(detail);
+            }
+          );
 
           const streamUpdate: StreamUpdate = {
             references:
               deserializeSearchResponse(dataObj.result.responseSet) ?? null,
-            detail: chatData
-              ? {
-                  type: "chat",
-                  data: chatData,
-                }
-              : null,
+            details,
             updatedText: getUpdatedText(dataObj.result, previousAnswerText),
             isDone: dataObj.result.summary?.done ?? false,
           };
@@ -130,12 +141,29 @@ export const streamQuery = async (
   }
 };
 
-const getChat = (parsedResult: ParsedResult): Chat | null => {
+const getChatDetail = (parsedResult: ParsedResult): ChatDetail | null => {
   if (!parsedResult.summary || !parsedResult.summary.chat) return null;
 
   return {
-    conversationId: parsedResult.summary.chat.conversationId,
-    turnId: parsedResult.summary.chat.turnId,
+    type: "chat",
+    data: {
+      conversationId: parsedResult.summary.chat.conversationId,
+      turnId: parsedResult.summary.chat.turnId,
+    },
+  };
+};
+
+const getFactualConsistencyDetail = (
+  parsedResult: ParsedResult
+): FactualConsistencyDetail | null => {
+  if (!parsedResult.summary || !parsedResult.summary.factualConsistency)
+    return null;
+
+  return {
+    type: "factualConsistency",
+    data: {
+      score: parsedResult.summary.factualConsistency.score,
+    },
   };
 };
 
