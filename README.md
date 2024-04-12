@@ -37,15 +37,22 @@ import {
   StreamQueryConfig,
 } from "@vectara/stream-query-client";
 
-/* snip */
-
 const sendQuery = async () => {
   const configurationOptions: StreamQueryConfig = {
-    // configuration properties
+    // Required fields.
+    customerId: "customerIdValue",
+    corpusIds: ["2"],
+    apiKey: "zqt_apiKeyValue",
+
+    // Optional fields.
+    queryValue: "Who put the ram in the ramalamadingdong?",
+    summaryNumResults: 5,
+    language: "eng",
   };
 
   const onStreamUpdate = (update: StreamUpdate) => {
-    // perform operations on returned data, e.g. update state
+    // Perform operations on returned data, e.g. update state.
+    consolel.log(update.updatedText);
   };
 
   streamQuery(configurationOptions, onStreamUpdate);
@@ -56,6 +63,6 @@ For more information on configuration options and callback types, see [the type 
 
 ## License
 
-Create-UI is an open-sourced software licensed under the [Apache 2.0 license](/LICENSE).
+Stream-Query-Client is an open-sourced software licensed under the [Apache 2.0 license](/LICENSE).
 
 _This repository contains sample code that can help you build UIs powered by Vectara, and is licensed under the Apache 2.0 License. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License._
