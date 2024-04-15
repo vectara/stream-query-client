@@ -52,7 +52,7 @@ const sendQuery = async () => {
 
   const onStreamUpdate = (update: StreamUpdate) => {
     // Perform operations on returned data, e.g. update state.
-    consolel.log(update.updatedText);
+    console.log(update.updatedText);
   };
 
   streamQuery(configurationOptions, onStreamUpdate);
