@@ -1,10 +1,9 @@
 import {
-  ChatDetail,
-  FactualConsistencyDetail,
+  Chat,
+  FactualConsistency,
   ParsedResult,
   StreamQueryConfig,
   StreamUpdate,
-  StreamUpdateDetail,
   StreamUpdateHandler,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
@@ -111,18 +110,17 @@ export const streamQuery = async (
 
           if (!dataObj.result) return;
 
+          const details: StreamUpdate["details"] = {};
+
           const chatDetail = getChatDetail(dataObj.result);
+          if (chatDetail) {
+            details.chat = chatDetail;
+          }
+
           const fcsDetail = getFactualConsistencyDetail(dataObj.result);
-          let details: Array<StreamUpdateDetail> | null = null;
-
-          [chatDetail, fcsDetail].forEach(
-            (detail: ChatDetail | FactualConsistencyDetail | null) => {
-              if (!detail) return;
-
-              details = details ?? [];
-              details.push(detail);
-            }
-          );
+          if (fcsDetail) {
+            details.factualConsistency = fcsDetail;
+          }
 
           const streamUpdate: StreamUpdate = {
             references:
@@ -140,29 +138,23 @@ export const streamQuery = async (
   }
 };
 
-const getChatDetail = (parsedResult: ParsedResult): ChatDetail | null => {
+const getChatDetail = (parsedResult: ParsedResult): Chat | null => {
   if (!parsedResult.summary || !parsedResult.summary.chat) return null;
 
   return {
-    type: "chat",
-    data: {
-      conversationId: parsedResult.summary.chat.conversationId,
-      turnId: parsedResult.summary.chat.turnId,
-    },
+    conversationId: parsedResult.summary.chat.conversationId,
+    turnId: parsedResult.summary.chat.turnId,
   };
 };
 
 const getFactualConsistencyDetail = (
   parsedResult: ParsedResult
-): FactualConsistencyDetail | null => {
+): FactualConsistency | null => {
   if (!parsedResult.summary || !parsedResult.summary.factualConsistency)
     return null;
 
   return {
-    type: "factualConsistency",
-    data: {
-      score: parsedResult.summary.factualConsistency.score,
-    },
+    score: parsedResult.summary.factualConsistency.score,
   };
 };
 

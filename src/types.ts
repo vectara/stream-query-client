@@ -3,11 +3,8 @@ export type Chat = {
   turnId: string;
 };
 
-export type ChatDetail = {
-  // The category of the accompanying data, specified for easy parsing.
-  // This will be expanded upon as more types of details are available.
-  type: "chat";
-  data: Chat;
+export type FactualConsistency = {
+  score: number;
 };
 
 export type DeserializedSearchResult = {
@@ -21,15 +18,6 @@ export type DeserializedSearchResult = {
   url?: string;
   title?: string;
   metadata: Record<string, unknown>;
-};
-
-export type FactualConsistency = {
-  score: number;
-};
-
-export type FactualConsistencyDetail = {
-  type: "factualConsistency";
-  data: FactualConsistency;
 };
 
 // A subset of the Vectara query response, in parsed form.
@@ -138,10 +126,11 @@ export type StreamUpdate = {
   isDone: boolean;
 
   // Any additional details that apply to the query response.
-  details: Array<StreamUpdateDetail> | null;
+  details: {
+    chat?: Chat;
+    factualConsistency?: FactualConsistency;
+  };
 };
-
-export type StreamUpdateDetail = ChatDetail | FactualConsistencyDetail;
 
 export type StreamUpdateHandler = (update: StreamUpdate) => void;
 
