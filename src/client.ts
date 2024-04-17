@@ -1,7 +1,5 @@
 import {
-  Chat,
   ChatDetail,
-  FactualConsistency,
   FactualConsistencyDetail,
   ParsedResult,
   StreamQueryConfig,
