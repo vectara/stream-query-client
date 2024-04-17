@@ -112,6 +112,9 @@ export type StreamQueryConfig = {
 
   // Chat configuration.
   chat?: ChatConfig;
+
+  // Debugging information (available under Scale plan).
+  debug?: boolean;
 };
 
 type ChatConfig = {

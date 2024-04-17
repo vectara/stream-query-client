@@ -76,6 +76,7 @@ export const streamQuery = async (
         summary: [
           {
             responseLang: config.language,
+            debug: config.debug,
             maxSummarizedResults: config.summaryNumResults,
             summarizerPromptName: config.summaryPromptName,
             factualConsistencyScore:

@@ -48,6 +48,9 @@ const sendQuery = async () => {
     queryValue: "Who put the ram in the ramalamadingdong?",
     summaryNumResults: 5,
     language: "eng",
+    debug: true,
+    enableFactualConsistencyScore: true,
+    summaryPromptName: "summary-prompt-name",
   };
 
   const onStreamUpdate = (update: StreamUpdate) => {
