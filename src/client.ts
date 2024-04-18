@@ -1,11 +1,9 @@
 import {
   Chat,
-  FactualConsistency,
   ParsedResult,
   StreamQueryConfig,
   StreamUpdate,
   StreamUpdateHandler,
-  Summary,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
 import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "./constants";
@@ -160,7 +158,7 @@ const getChatDetail = (
   config: StreamQueryConfig,
   parsedResult: ParsedResult
 ) => {
-  if (!parsedResult.summary || !parsedResult.summary.chat) return;
+  if (!parsedResult.summary?.chat) return;
 
   const chatDetail: Chat = {
     conversationId: parsedResult.summary.chat.conversationId,

@@ -8,7 +8,7 @@ import {
 
 const App = () => {
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [answer, setAnswer] = useState<string>();
   const [conversationId, setConversationId] = useState<string>();
 
   const sendQuery = async () => {

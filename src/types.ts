@@ -41,8 +41,8 @@ export type ParsedResult = {
       text: string;
     }>;
   };
-  summary: {
-    chat: Chat;
+  summary?: {
+    chat?: Chat;
     factualConsistency?: FactualConsistency;
     done: boolean;
     text: string;
