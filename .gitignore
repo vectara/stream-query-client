@@ -1,6 +1,7 @@
-/node_modules
-/lib
+/coverage
 /docs/node_modules/
 /docs/public/script.js
 /docs/public/script.js.map
+/lib
+/node_modules
 .DS_Store
