@@ -1,6 +1,12 @@
+export type Summary = {
+  prompt?: string;
+};
+
 export type Chat = {
   conversationId: string;
   turnId: string;
+  // Debug-only
+  rephrasedQuery?: string;
 };
 
 export type FactualConsistency = {
@@ -37,9 +43,11 @@ export type ParsedResult = {
   };
   summary: {
     chat: Chat;
-    factualConsistency: FactualConsistency | null;
+    factualConsistency?: FactualConsistency;
     done: boolean;
     text: string;
+    // Debug-only
+    prompt?: string;
   };
 };
 
@@ -116,17 +124,18 @@ type ChatConfig = {
 
 export type StreamUpdate = {
   // A list of references that apply to the query response.
-  references: Array<DeserializedSearchResult> | null;
+  references?: Array<DeserializedSearchResult>;
 
   // A concatenation of all text chunks the streaming API has returned so far.
   // Use this when updating your UI text display.
-  updatedText: string | null;
+  updatedText?: string;
 
   // true, if streaming has completed.
   isDone: boolean;
 
   // Any additional details that apply to the query response.
   details: {
+    summary?: Summary;
     chat?: Chat;
     factualConsistency?: FactualConsistency;
   };

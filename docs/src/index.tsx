@@ -9,6 +9,7 @@ import {
 const App = () => {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
+  const [conversationId, setConversationId] = useState<string>();
 
   const sendQuery = async () => {
     const configurationOptions: StreamQueryConfig = {
@@ -21,15 +22,22 @@ const App = () => {
       queryValue: question,
       summaryNumResults: 5,
       language: "eng",
-      debug: true,
+      chat: {
+        store: true,
+        conversationId,
+      },
+      debug: false,
       enableFactualConsistencyScore: true,
       summaryPromptName: "vectara-experimental-summary-ext-2023-12-11-large",
     };
 
     const onStreamUpdate = (update: StreamUpdate) => {
       console.log(update);
-      // Perform operations on returned data, e.g. update state.
-      setAnswer(update.updatedText ?? "");
+      const { updatedText, details } = update;
+      if (details.chat) {
+        setConversationId(details.chat.conversationId);
+      }
+      setAnswer(updatedText);
     };
 
     streamQuery(configurationOptions, onStreamUpdate);

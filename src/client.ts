@@ -5,6 +5,7 @@ import {
   StreamQueryConfig,
   StreamUpdate,
   StreamUpdateHandler,
+  Summary,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
 import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "./constants";
@@ -112,7 +113,12 @@ export const streamQuery = async (
 
           const details: StreamUpdate["details"] = {};
 
-          const chatDetail = getChatDetail(dataObj.result);
+          const summaryDetail = getSummaryDetail(config, dataObj.result);
+          if (summaryDetail) {
+            details.summary = summaryDetail;
+          }
+
+          const chatDetail = getChatDetail(config, dataObj.result);
           if (chatDetail) {
             details.chat = chatDetail;
           }
@@ -123,8 +129,7 @@ export const streamQuery = async (
           }
 
           const streamUpdate: StreamUpdate = {
-            references:
-              deserializeSearchResponse(dataObj.result.responseSet) ?? null,
+            references: deserializeSearchResponse(dataObj.result.responseSet),
             details,
             updatedText: getUpdatedText(dataObj.result, previousAnswerText),
             isDone: dataObj.result.summary?.done ?? false,
@@ -138,31 +143,47 @@ export const streamQuery = async (
   }
 };
 
-const getChatDetail = (parsedResult: ParsedResult): Chat | null => {
-  if (!parsedResult.summary || !parsedResult.summary.chat) return null;
+const getSummaryDetail = (
+  config: StreamQueryConfig,
+  parsedResult: ParsedResult
+) => {
+  if (!parsedResult.summary) return;
 
-  return {
+  if (config.debug) {
+    return {
+      prompt: parsedResult.summary.prompt,
+    };
+  }
+};
+
+const getChatDetail = (
+  config: StreamQueryConfig,
+  parsedResult: ParsedResult
+) => {
+  if (!parsedResult.summary || !parsedResult.summary.chat) return;
+
+  const chatDetail: Chat = {
     conversationId: parsedResult.summary.chat.conversationId,
     turnId: parsedResult.summary.chat.turnId,
   };
+
+  if (config.debug) {
+    chatDetail.rephrasedQuery = parsedResult.summary.chat.rephrasedQuery;
+  }
+
+  return chatDetail;
 };
 
-const getFactualConsistencyDetail = (
-  parsedResult: ParsedResult
-): FactualConsistency | null => {
-  if (!parsedResult.summary || !parsedResult.summary.factualConsistency)
-    return null;
+const getFactualConsistencyDetail = (parsedResult: ParsedResult) => {
+  if (!parsedResult.summary || !parsedResult.summary.factualConsistency) return;
 
   return {
     score: parsedResult.summary.factualConsistency.score,
   };
 };
 
-const getUpdatedText = (
-  parsedResult: ParsedResult,
-  previousText: string
-): string | null => {
-  if (!parsedResult.summary) return null;
+const getUpdatedText = (parsedResult: ParsedResult, previousText: string) => {
+  if (!parsedResult.summary) return;
 
   return `${previousText}${parsedResult.summary.text}`;
 };
