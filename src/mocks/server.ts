@@ -110,7 +110,8 @@ export const server = setupServer(
                 chat: {
                   conversationId: "d79ebe27-cd87-4465-a245-a3dc092ec681",
                   turnId: "d79ebe27-cd87-4465-a245-a3dc092ec681",
-                  rephrasedQuery: "",
+                  rephrasedQuery:
+                    "The rephrased query is provided when the streamed response is done.",
                   status: null,
                 },
                 factualConsistency: null,
@@ -132,11 +133,13 @@ export const server = setupServer(
               summary: {
                 text: "",
                 lang: "eng",
-                prompt: "",
+                prompt:
+                  "The prompt is provided at the very end for some reason.",
                 chat: {
                   conversationId: "d79ebe27-cd87-4465-a245-a3dc092ec681",
                   turnId: "d79ebe27-cd87-4465-a245-a3dc092ec681",
-                  rephrasedQuery: "",
+                  rephrasedQuery:
+                    "The rephrased query is provided when the streamed response is done.",
                   status: null,
                 },
                 factualConsistency: {

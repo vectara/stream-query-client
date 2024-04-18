@@ -28,7 +28,7 @@ describe("stream-query-client", () => {
       chat: {
         store: true,
       },
-      debug: false,
+      debug: true,
       enableFactualConsistencyScore: true,
       summaryPromptName: "vectara-experimental-summary-ext-2023-12-11-large",
     };
@@ -81,6 +81,8 @@ describe("stream-query-client", () => {
         chat: {
           conversationId: "d79ebe27-cd87-4465-a245-a3dc092ec681",
           turnId: "d79ebe27-cd87-4465-a245-a3dc092ec681",
+          rephrasedQuery:
+            "The rephrased query is provided when the streamed response is done.",
         },
       },
       updatedText: "The completed summary.",
@@ -93,8 +95,13 @@ describe("stream-query-client", () => {
         chat: {
           conversationId: "d79ebe27-cd87-4465-a245-a3dc092ec681",
           turnId: "d79ebe27-cd87-4465-a245-a3dc092ec681",
+          rephrasedQuery:
+            "The rephrased query is provided when the streamed response is done.",
         },
         factualConsistency: { score: 0.81162083 },
+        summary: {
+          prompt: "The prompt is provided at the very end for some reason.",
+        },
       },
       updatedText: "The completed summary.",
       isDone: true,

@@ -26,7 +26,7 @@ const App = () => {
         store: true,
         conversationId,
       },
-      debug: false,
+      debug: true,
       enableFactualConsistencyScore: true,
       summaryPromptName: "vectara-experimental-summary-ext-2023-12-11-large",
     };

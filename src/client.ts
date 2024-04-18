@@ -147,7 +147,7 @@ const getSummaryDetail = (
 ) => {
   if (!parsedResult.summary) return;
 
-  if (config.debug) {
+  if (config.debug && parsedResult.summary.prompt) {
     return {
       prompt: parsedResult.summary.prompt,
     };
@@ -165,7 +165,7 @@ const getChatDetail = (
     turnId: parsedResult.summary.chat.turnId,
   };
 
-  if (config.debug) {
+  if (config.debug && parsedResult.summary.chat.rephrasedQuery) {
     chatDetail.rephrasedQuery = parsedResult.summary.chat.rephrasedQuery;
   }
 
