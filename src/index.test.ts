@@ -1,8 +1,13 @@
-import { server } from "./mocks/server";
+import { SetupServerApi } from "msw/node";
 import { streamQuery, StreamUpdate, StreamQueryConfig } from "./index";
+import { createStreamingServer } from "./createStreamingServer";
+import { chunks } from "./index.mocks";
 
 describe("stream-query-client", () => {
+  let server: SetupServerApi;
+
   beforeAll(async () => {
+    server = createStreamingServer(chunks);
     await server.listen();
   });
 
