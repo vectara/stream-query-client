@@ -1,13 +1,15 @@
 {
   "name": "@vectara/stream-query-client",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "A utility to conveniently send and receive data to/from Vectara's streaming query API.",
   "main": "lib/index.js",
+  "module": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "test": "test",
+    "test": "jest --coverage --forceExit",
     "build": "npm run clean && node build.js && tsc --emitDeclarationOnly --outDir lib",
-    "clean": "rimraf lib"
+    "clean": "rimraf lib",
+    "docs": "npm install && npm run build && npm install --prefix docs && npm run docs --prefix docs"
   },
   "author": {
     "name": "Vectara, Inc.",
@@ -19,12 +21,28 @@
     "url": "https://github.com/vectara/stream-query-client"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
+    "chokidar": "^3.5.3",
     "esbuild": "^0.20.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-react": "^7.33.2",
     "jest": "^29.7.0",
+    "live-server": "^1.2.2",
+    "msw": "^2.2.14",
+    "react": ">= 17.0.2",
+    "react-dom": ">= 17.0.2",
     "rimraf": "^5.0.5",
     "ts-jest": "^29.1.2",
     "typescript": "^5.4.3"
+  },
+  "msw": {
+    "workerDirectory": [
+      "docs/public"
+    ]
   }
 }

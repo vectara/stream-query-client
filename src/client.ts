@@ -1,12 +1,8 @@
 import {
   Chat,
-  ChatDetail,
-  FactualConsistency,
-  FactualConsistencyDetail,
   ParsedResult,
   StreamQueryConfig,
   StreamUpdate,
-  StreamUpdateDetail,
   StreamUpdateHandler,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
@@ -78,6 +74,7 @@ export const streamQuery = async (
         summary: [
           {
             responseLang: config.language,
+            debug: config.debug,
             maxSummarizedResults: config.summaryNumResults,
             summarizerPromptName: config.summaryPromptName,
             factualConsistencyScore:
@@ -112,22 +109,25 @@ export const streamQuery = async (
 
           if (!dataObj.result) return;
 
-          const chatDetail = getChatDetail(dataObj.result);
+          const details: StreamUpdate["details"] = {};
+
+          const summaryDetail = getSummaryDetail(config, dataObj.result);
+          if (summaryDetail) {
+            details.summary = summaryDetail;
+          }
+
+          const chatDetail = getChatDetail(config, dataObj.result);
+          if (chatDetail) {
+            details.chat = chatDetail;
+          }
+
           const fcsDetail = getFactualConsistencyDetail(dataObj.result);
-          let details: Array<StreamUpdateDetail> | null = null;
-
-          [chatDetail, fcsDetail].forEach(
-            (detail: ChatDetail | FactualConsistencyDetail | null) => {
-              if (!detail) return;
-
-              details = details ?? [];
-              details.push(detail);
-            }
-          );
+          if (fcsDetail) {
+            details.factualConsistency = fcsDetail;
+          }
 
           const streamUpdate: StreamUpdate = {
-            references:
-              deserializeSearchResponse(dataObj.result.responseSet) ?? null,
+            references: deserializeSearchResponse(dataObj.result.responseSet),
             details,
             updatedText: getUpdatedText(dataObj.result, previousAnswerText),
             isDone: dataObj.result.summary?.done ?? false,
@@ -141,37 +141,47 @@ export const streamQuery = async (
   }
 };
 
-const getChatDetail = (parsedResult: ParsedResult): ChatDetail | null => {
-  if (!parsedResult.summary || !parsedResult.summary.chat) return null;
-
-  return {
-    type: "chat",
-    data: {
-      conversationId: parsedResult.summary.chat.conversationId,
-      turnId: parsedResult.summary.chat.turnId,
-    },
-  };
-};
-
-const getFactualConsistencyDetail = (
+const getSummaryDetail = (
+  config: StreamQueryConfig,
   parsedResult: ParsedResult
-): FactualConsistencyDetail | null => {
-  if (!parsedResult.summary || !parsedResult.summary.factualConsistency)
-    return null;
+) => {
+  if (!parsedResult.summary) return;
+
+  if (config.debug && parsedResult.summary.prompt) {
+    return {
+      prompt: parsedResult.summary.prompt,
+    };
+  }
+};
+
+const getChatDetail = (
+  config: StreamQueryConfig,
+  parsedResult: ParsedResult
+) => {
+  if (!parsedResult.summary?.chat) return;
+
+  const chatDetail: Chat = {
+    conversationId: parsedResult.summary.chat.conversationId,
+    turnId: parsedResult.summary.chat.turnId,
+  };
+
+  if (config.debug && parsedResult.summary.chat.rephrasedQuery) {
+    chatDetail.rephrasedQuery = parsedResult.summary.chat.rephrasedQuery;
+  }
+
+  return chatDetail;
+};
+
+const getFactualConsistencyDetail = (parsedResult: ParsedResult) => {
+  if (!parsedResult.summary || !parsedResult.summary.factualConsistency) return;
 
   return {
-    type: "factualConsistency",
-    data: {
-      score: parsedResult.summary.factualConsistency.score,
-    },
+    score: parsedResult.summary.factualConsistency.score,
   };
 };
 
-const getUpdatedText = (
-  parsedResult: ParsedResult,
-  previousText: string
-): string | null => {
-  if (!parsedResult.summary) return null;
+const getUpdatedText = (parsedResult: ParsedResult, previousText: string) => {
+  if (!parsedResult.summary) return;
 
   return `${previousText}${parsedResult.summary.text}`;
 };
