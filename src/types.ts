@@ -134,7 +134,7 @@ export type StreamUpdate = {
   isDone: boolean;
 
   // Any additional details that apply to the query response.
-  details: {
+  details?: {
     summary?: Summary;
     chat?: Chat;
     factualConsistency?: FactualConsistency;
