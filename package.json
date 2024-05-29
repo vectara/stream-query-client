@@ -1,6 +1,6 @@
 {
   "name": "@vectara/stream-query-client",
-  "version": "2.1.2",
+  "version": "2.1.0",
   "description": "A utility to conveniently send and receive data to/from Vectara's streaming query API.",
   "main": "lib/index.js",
   "module": "lib/index.js",
