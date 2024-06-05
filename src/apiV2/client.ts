@@ -1,149 +1,189 @@
-export const streamQueryV2 = () => undefined;
-// import {
-//   Chat,
-//   ParsedResult,
-//   StreamQueryConfig,
-//   StreamUpdate,
-//   StreamUpdateHandler,
-// } from "./types";
-// import { deserializeSearchResponse } from "./deserializeSearchResponse";
-// import {
-//   SNIPPET_START_TAG,
-//   SNIPPET_END_TAG,
-//   DEFAULT_ENDPOINT,
-// } from "../common/constants";
+import {
+  Chat,
+  GenerationConfig,
+  ParsedResult,
+  StreamQueryConfig,
+  StreamUpdate,
+  StreamUpdateHandler,
+} from "./types";
+import { QueryBody } from "./apiTypes";
+import { DEFAULT_ENDPOINT } from "../common/constants";
 
-// export const streamQueryV2 = async (
-//   config: StreamQueryConfig,
-//   onStreamUpdate: StreamUpdateHandler
-// ) => {
-//   const requestHeaders = {
-//     "x-api-key": config.apiKey,
-//     "customer-id": config.customerId,
-//     "Content-Type": "application/json",
-//   };
+const convertReranker = (
+  reranker?: StreamQueryConfig["search"]["reranker"]
+) => {
+  if (!reranker) return;
 
-//   // Normalizes lambda to ensure that:
-//   // - lambda is between 0 and 1
-//   // - lambda is always a positive number
-//   let normalizedLambda = config.lambda ?? 0.025;
-//   if (normalizedLambda > 1) {
-//     normalizedLambda = 1.0;
-//   } else if (normalizedLambda < 0) {
-//     normalizedLambda = 0;
-//   }
+  if (reranker.type === "customer_reranker") {
+    return {
+      type: reranker.type,
+      reranker_id: reranker.rerankerId,
+    };
+  }
 
-//   const corpusKeyList = config.corpusIds.map((id) => {
-//     return {
-//       customerId: config.customerId,
-//       corpusId: id,
-//       lexicalInterpolationConfig: {
-//         lambda: normalizedLambda,
-//       },
-//       metadataFilter: config.filter
-//         ? `doc.source = '${config.filter}'`
-//         : undefined,
-//     };
-//   });
+  if (reranker.type === "mmr") {
+    return {
+      type: reranker.type,
+      diversity_bias: reranker.diversityBias,
+    };
+  }
+};
 
-//   const rerankingConfig = !config.rerank
-//     ? {}
-//     : {
-//         rerankingConfig: {
-//           rerankerId: config.rerankerId,
-//           ...(config.rerankerId === 272725718
-//             ? {
-//                 mmrConfig: {
-//                   diversityBias: config.rerankDiversityBias,
-//                 },
-//               }
-//             : {}),
-//         },
-//       };
+const convertCitations = (citations?: GenerationConfig["citations"]) => {
+  if (!citations) return;
 
-//   const requestBody = JSON.stringify({
-//     query: [
-//       {
-//         query: config.queryValue,
-//         start: 0,
-//         numResults: config.rerank ? config.rerankNumResults : 10,
-//         corpusKey: corpusKeyList,
-//         contextConfig: {
-//           sentencesBefore: config.summaryNumSentences ?? 2,
-//           sentencesAfter: config.summaryNumSentences ?? 2,
-//           startTag: SNIPPET_START_TAG,
-//           endTag: SNIPPET_END_TAG,
-//         },
-//         summary: [
-//           {
-//             responseLang: config.language,
-//             debug: config.debug,
-//             maxSummarizedResults: config.summaryNumResults,
-//             summarizerPromptName: config.summaryPromptName,
-//             factualConsistencyScore:
-//               config.enableFactualConsistencyScore ?? false,
-//             chat: {
-//               store: config.chat?.store ?? false,
-//               conversationId: config.chat?.conversationId,
-//             },
-//           },
-//         ],
-//         ...rerankingConfig,
-//       },
-//     ],
-//   });
+  if (citations.style === "none" || citations.style === "numeric") {
+    return {
+      style: citations.style,
+    };
+  }
 
-//   const stream = await generateStream(
-//     requestHeaders,
-//     requestBody,
-//     config.endpoint ?? DEFAULT_ENDPOINT
-//   );
+  if (citations.style === "html" || citations.style === "markdown") {
+    return {
+      style: citations.style,
+      url_pattern: citations.urlPattern,
+      text_pattern: citations.textPattern,
+    };
+  }
+};
 
-//   let previousAnswerText = "";
+export const streamQueryV2 = async (
+  config: StreamQueryConfig,
+  onStreamUpdate: StreamUpdateHandler
+) => {
+  const {
+    customerId,
+    apiKey,
+    endpoint,
+    query,
+    search: { offset, corpora, limit, contextConfiguration, reranker },
+    generation: {
+      promptName,
+      maxUsedSearchResults,
+      promptText,
+      maxResponseCharacters,
+      responseLanguage,
+      modelParameters,
+      citations,
+    } = {},
+    chat,
+  } = config;
 
-//   for await (const chunk of stream) {
-//     try {
-//       const parts = chunk.split("\n");
+  const body: QueryBody = {
+    query,
+    search: {
+      offset,
+      corpora: corpora.map(
+        ({
+          corpusKey,
+          metadataFilter,
+          lexicalInterpolation,
+          customDimensions,
+          semantics,
+        }) => ({
+          corpus_key: corpusKey,
+          metadata_filter: metadataFilter,
+          lexical_interpolation: lexicalInterpolation,
+          custom_dimensions: customDimensions?.reduce(
+            (acc, { name, weight }) => ({ ...acc, [name]: weight }),
+            {} as Record<string, number>
+          ),
+          semantics,
+        })
+      ),
+      limit,
+      context_configuration: {
+        characters_before: contextConfiguration?.charactersBefore,
+        characters_after: contextConfiguration?.charactersAfter,
+        sentences_before: contextConfiguration?.sentencesBefore,
+        sentences_after: contextConfiguration?.sentencesAfter,
+        start_tag: contextConfiguration?.startTag,
+        end_tag: contextConfiguration?.endTag,
+      },
+      reranker: convertReranker(reranker),
+    },
+    generation: {
+      prompt_name: promptName,
+      max_used_search_results: maxUsedSearchResults,
+      prompt_text: promptText,
+      max_response_characters: maxResponseCharacters,
+      response_language: responseLanguage,
+      model_parameters: modelParameters && {
+        max_tokens: modelParameters.maxTokens,
+        temperature: modelParameters.temperature,
+        frequency_penalty: modelParameters.frequencyPenalty,
+        presence_penalty: modelParameters.presencePenalty,
+      },
+      citations: convertCitations(citations),
+    },
+    chat: chat && {
+      store: chat.store,
+    },
+  };
 
-//       parts
-//         .filter((part) => part !== "")
-//         .forEach((part) => {
-//           const dataObj = JSON.parse(part);
+  const headers = {
+    "x-api-key": apiKey,
+    "customer-id": customerId,
+    "Content-Type": "application/json",
+  };
 
-//           if (!dataObj.result) return;
+  const path = !chat
+    ? "/v2/query"
+    : chat.conversationId
+    ? `/v2/chats/${chat.conversationId}/turns`
+    : "/v2/chats";
 
-//           const details: StreamUpdate["details"] = {};
+  const url = `${endpoint ?? DEFAULT_ENDPOINT}${path}`;
 
-//           const summaryDetail = getSummaryDetail(config, dataObj.result);
-//           if (summaryDetail) {
-//             details.summary = summaryDetail;
-//           }
+  const stream = await generateStream(headers, JSON.stringify(body), url);
 
-//           const chatDetail = getChatDetail(config, dataObj.result);
-//           if (chatDetail) {
-//             details.chat = chatDetail;
-//           }
+  let previousAnswerText = "";
 
-//           const fcsDetail = getFactualConsistencyDetail(dataObj.result);
-//           if (fcsDetail) {
-//             details.factualConsistency = fcsDetail;
-//           }
+  for await (const chunk of stream) {
+    try {
+      const parts = chunk.split("\n");
 
-//           const streamUpdate: StreamUpdate = {
-//             references: deserializeSearchResponse(dataObj.result.responseSet),
-//             details,
-//             updatedText: getUpdatedText(dataObj.result, previousAnswerText),
-//             isDone: dataObj.result.summary?.done ?? false,
-//           };
+      parts
+        .filter((part) => part !== "")
+        .forEach((part) => {
+          const dataObj = JSON.parse(part);
 
-//           previousAnswerText = streamUpdate.updatedText ?? "";
+          if (!dataObj.result) return;
 
-//           onStreamUpdate(streamUpdate);
-//         });
-//     } catch (error) {}
-//   }
-// };
+          const details: StreamUpdate["details"] = {};
 
+          // TODO: Add back once debug has been added back to API v2.
+          // const summaryDetail = getSummaryDetail(config, dataObj.result);
+          // if (summaryDetail) {
+          //   details.summary = summaryDetail;
+          // }
+
+          const chatDetail = getChatDetail(dataObj.result);
+          if (chatDetail) {
+            details.chat = chatDetail;
+          }
+
+          const fcsDetail = getFactualConsistencyDetail(dataObj.result);
+          if (fcsDetail) {
+            details.factualConsistency = fcsDetail;
+          }
+
+          const streamUpdate: StreamUpdate = {
+            responseSet: dataObj.result.responseSet,
+            details,
+            updatedText: getUpdatedText(dataObj.result, previousAnswerText),
+            isDone: dataObj.result.summary?.done ?? false,
+          };
+
+          previousAnswerText = streamUpdate.updatedText ?? "";
+
+          onStreamUpdate(streamUpdate);
+        });
+    } catch (error) {}
+  }
+};
+
+// TODO: Add back once debug has been added back to API v2.
 // const getSummaryDetail = (
 //   config: StreamQueryConfig,
 //   parsedResult: ParsedResult
@@ -157,65 +197,66 @@ export const streamQueryV2 = () => undefined;
 //   }
 // };
 
-// const getChatDetail = (
-//   config: StreamQueryConfig,
-//   parsedResult: ParsedResult
-// ) => {
-//   if (!parsedResult.summary?.chat) return;
+const getChatDetail = (
+  // config: StreamQueryConfig,
+  parsedResult: ParsedResult
+) => {
+  if (!parsedResult.summary?.chat) return;
 
-//   const chatDetail: Chat = {
-//     conversationId: parsedResult.summary.chat.conversationId,
-//     turnId: parsedResult.summary.chat.turnId,
-//   };
+  const chatDetail: Chat = {
+    conversationId: parsedResult.summary.chat.conversationId,
+    turnId: parsedResult.summary.chat.turnId,
+  };
 
-//   if (config.debug && parsedResult.summary.chat.rephrasedQuery) {
-//     chatDetail.rephrasedQuery = parsedResult.summary.chat.rephrasedQuery;
-//   }
+  // TODO: Add back once debug has been added back to API v2.
+  // if (config.debug && parsedResult.summary.chat.rephrasedQuery) {
+  //   chatDetail.rephrasedQuery = parsedResult.summary.chat.rephrasedQuery;
+  // }
 
-//   return chatDetail;
-// };
+  return chatDetail;
+};
 
-// const getFactualConsistencyDetail = (parsedResult: ParsedResult) => {
-//   if (!parsedResult.summary || !parsedResult.summary.factualConsistency) return;
+const getFactualConsistencyDetail = (parsedResult: ParsedResult) => {
+  if (!parsedResult.summary || !parsedResult.summary.factualConsistency) return;
 
-//   return {
-//     score: parsedResult.summary.factualConsistency.score,
-//   };
-// };
+  return {
+    score: parsedResult.summary.factualConsistency.score,
+  };
+};
 
-// const getUpdatedText = (parsedResult: ParsedResult, previousText: string) => {
-//   if (!parsedResult.summary) return;
+const getUpdatedText = (parsedResult: ParsedResult, previousText: string) => {
+  if (!parsedResult.summary) return;
 
-//   return `${previousText}${parsedResult.summary.text}`;
-// };
+  return `${previousText}${parsedResult.summary.text}`;
+};
 
-// const generateStream = async (
-//   requestHeaders: Record<string, string>,
-//   requestBody: string,
-//   endpoint: string
-// ): Promise<AsyncIterable<string>> => {
-//   const response = await fetch(`https://${endpoint}/v1/stream-query`, {
-//     method: "POST",
-//     headers: requestHeaders,
-//     body: requestBody,
-//   });
-//   if (response.status !== 200) throw new Error(response.status.toString());
-//   if (!response.body) throw new Error("Response body does not exist");
-//   return getIterableStream(response.body);
-// };
+const generateStream = async (
+  headers: Record<string, string>,
+  body: string,
+  url: string
+): Promise<AsyncIterable<string>> => {
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body,
+  });
+  if (response.status !== 200) throw new Error(response.status.toString());
+  if (!response.body) throw new Error("Response body does not exist");
+  return getIterableStream(response.body);
+};
 
-// async function* getIterableStream(
-//   body: ReadableStream<Uint8Array>
-// ): AsyncIterable<string> {
-//   const reader = body.getReader();
-//   const decoder = new TextDecoder();
+async function* getIterableStream(
+  body: ReadableStream<Uint8Array>
+): AsyncIterable<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
 
-//   while (true) {
-//     const { value, done } = await reader.read();
-//     if (done) {
-//       break;
-//     }
-//     const decodedChunk = decoder.decode(value, { stream: true });
-//     yield decodedChunk;
-//   }
-// }
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) {
+      break;
+    }
+    const decodedChunk = decoder.decode(value, { stream: true });
+    yield decodedChunk;
+  }
+}

@@ -1,8 +1,8 @@
 import { SetupServerApi } from "msw/node";
-import { streamQueryV1 } from "./index";
+import { streamQueryV1 } from "./client";
 import { StreamQueryConfig, StreamUpdate } from "./types";
 import { createStreamingServer } from "../common/createStreamingServer";
-import { chunks } from "./index.mocks";
+import { chunks } from "./client.mocks";
 
 describe("stream-query-client API v1", () => {
   let server: SetupServerApi;

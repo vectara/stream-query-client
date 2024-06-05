@@ -1,26 +1,36 @@
 import { useState } from "react";
 import ReactDOM from "react-dom";
-import { streamQueryV1, ApiV1 } from "@vectara/stream-query-client";
+import {
+  streamQueryV1,
+  ApiV1,
+  streamQueryV2,
+  ApiV2,
+} from "@vectara/stream-query-client";
+
+const CUSTOMER_ID = "1526022105";
+const API_KEY = "zqt_WvU_2ewh7ZGRwq8LdL2SV8B9RJmVGyUm1VAuOw";
+const CORPUS_NAME = "ofer-bm-moma-docs";
+const CORPUS_ID = "232";
 
 const App = () => {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<string>();
-  const [conversationId, setConversationId] = useState<string>();
+  const [questionV1, setQuestionV1] = useState("");
+  const [answerV1, setAnswerV1] = useState<string>();
+  const [conversationIdV1, setConversationIdV1] = useState<string>();
 
-  const sendQuery = async () => {
+  const sendQueryV1 = async () => {
     const configurationOptions: ApiV1.StreamQueryConfig = {
       // Required fields.
-      customerId: "1366999410",
-      corpusIds: ["1"],
-      apiKey: "zqt_UXrBcnI2UXINZkrv4g1tQPhzj02vfdtqYJIDiA",
+      customerId: CUSTOMER_ID,
+      corpusIds: [CORPUS_ID],
+      apiKey: API_KEY,
 
       // Optional fields.
-      queryValue: question,
+      queryValue: questionV1,
       summaryNumResults: 5,
       language: "eng",
       chat: {
         store: true,
-        conversationId,
+        conversationId: conversationIdV1,
       },
       debug: true,
       enableFactualConsistencyScore: true,
@@ -31,26 +41,72 @@ const App = () => {
       console.log(update);
       const { updatedText, details } = update;
       if (details?.chat) {
-        setConversationId(details.chat.conversationId);
+        setConversationIdV1(details.chat.conversationId);
       }
-      setAnswer(updatedText);
+      setAnswerV1(updatedText);
     };
 
     streamQueryV1(configurationOptions, onStreamUpdate);
   };
 
+  const [questionV2, setQuestionV2] = useState("");
+  const [answerV2, setAnswerV2] = useState<string>();
+  const [conversationIdV2, setConversationIdV2] = useState<string>();
+
+  const sendQueryV2 = async () => {
+    const configurationOptions: ApiV2.StreamQueryConfig = {
+      customerId: CUSTOMER_ID,
+      apiKey: API_KEY,
+      query: questionV1,
+      search: {
+        offset: 0,
+        corpora: [
+          {
+            corpusKey: `${CORPUS_NAME}_${CORPUS_ID}`,
+            metadataFilter: "",
+          },
+        ],
+        limit: 5,
+      },
+      generation: {
+        maxUsedSearchResults: 5,
+        responseLanguage: "eng",
+        enableFactualConsistencyScore: true,
+        promptName: "vectara-experimental-summary-ext-2023-12-11-large",
+      },
+      chat: {
+        store: true,
+        conversationId: conversationIdV2,
+      },
+    };
+
+    const onStreamUpdate = (update: ApiV2.StreamUpdate) => {
+      console.log(update);
+      const { updatedText, details } = update;
+      if (details?.chat) {
+        setConversationIdV2(details.chat.conversationId);
+      }
+      setAnswerV2(updatedText);
+    };
+
+    streamQueryV2(configurationOptions, onStreamUpdate);
+  };
+
   return (
     <>
-      <h1>Stream Query Client</h1>
+      <h1>Stream Query Client v1</h1>
 
       <h2>Question</h2>
 
-      <input value={question} onChange={(e) => setQuestion(e.target.value)} />
+      <input
+        value={questionV1}
+        onChange={(e) => setQuestionV1(e.target.value)}
+      />
 
       <button
         onClick={() => {
-          setAnswer("");
-          sendQuery();
+          setAnswerV1("");
+          sendQueryV1();
         }}
       >
         Send
@@ -58,7 +114,29 @@ const App = () => {
 
       <h2>Answer</h2>
 
-      <p>{answer}</p>
+      <p>{answerV1}</p>
+
+      <h1>Stream Query Client v2</h1>
+
+      <h2>Question</h2>
+
+      <input
+        value={questionV2}
+        onChange={(e) => setQuestionV2(e.target.value)}
+      />
+
+      <button
+        onClick={() => {
+          setAnswerV2("");
+          sendQueryV2();
+        }}
+      >
+        Send
+      </button>
+
+      <h2>Answer</h2>
+
+      <p>{answerV2}</p>
     </>
   );
 };

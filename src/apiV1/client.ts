@@ -6,11 +6,8 @@ import {
   StreamUpdateHandler,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
-import {
-  SNIPPET_START_TAG,
-  SNIPPET_END_TAG,
-  DEFAULT_ENDPOINT,
-} from "../common/constants";
+import { DEFAULT_ENDPOINT } from "../common/constants";
+import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "./constants";
 
 export const streamQueryV1 = async (
   config: StreamQueryConfig,
@@ -193,7 +190,7 @@ const generateStream = async (
   requestBody: string,
   endpoint: string
 ): Promise<AsyncIterable<string>> => {
-  const response = await fetch(`https://${endpoint}/v1/stream-query`, {
+  const response = await fetch(`${endpoint}/v1/stream-query`, {
     method: "POST",
     headers: requestHeaders,
     body: requestBody,
