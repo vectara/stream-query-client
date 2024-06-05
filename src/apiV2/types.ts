@@ -150,35 +150,6 @@ export type StreamUpdate = {
 
 export type StreamUpdateHandler = (update: StreamUpdate) => void;
 
-export type SearchResponse = {
-  document: Array<SearchResponseDoc>;
-  response: Array<SearchResponseResult>;
-  summary: Array<SearchResponseSummary>;
-};
-
-type SearchResponseDoc = {
-  id: string;
-  metadata: Array<DocMetadata>;
-};
-
-type SearchResponseResult = {
-  corpusKey: {
-    corpusId: string;
-    customerId: string;
-    dim: string[];
-  };
-  documentIndex: string;
-  resultLength: number;
-  resultOffset: number;
-  score: number;
-  text: string;
-};
-
-type SearchResponseSummary = {
-  text?: string;
-  status?: string;
-};
-
 export type DocMetadata = {
   name: string;
   value: string;
