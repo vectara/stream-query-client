@@ -1,13 +1,14 @@
 import { SetupServerApi } from "msw/node";
-import { streamQuery, StreamUpdate, StreamQueryConfig } from "./index";
-import { createStreamingServer } from "./createStreamingServer";
+import { streamQueryV1 } from "./index";
+import { StreamQueryConfig, StreamUpdate } from "./types";
+import { createStreamingServer } from "../common/createStreamingServer";
 import { chunks } from "./index.mocks";
 
-describe("stream-query-client", () => {
+describe("stream-query-client API v1", () => {
   let server: SetupServerApi;
 
   beforeAll(async () => {
-    server = createStreamingServer(chunks);
+    server = createStreamingServer("/v1/stream-query", chunks);
     await server.listen();
   });
 
@@ -44,7 +45,7 @@ describe("stream-query-client", () => {
       handleUpdate(update);
     };
 
-    await streamQuery(configurationOptions, onStreamUpdate);
+    await streamQueryV1(configurationOptions, onStreamUpdate);
 
     expect(handleUpdate).toHaveBeenNthCalledWith(1, {
       references: [

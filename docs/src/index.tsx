@@ -1,10 +1,6 @@
 import { useState } from "react";
 import ReactDOM from "react-dom";
-import {
-  streamQuery,
-  StreamUpdate,
-  StreamQueryConfig,
-} from "@vectara/stream-query-client";
+import { streamQueryV1, ApiV1 } from "@vectara/stream-query-client";
 
 const App = () => {
   const [question, setQuestion] = useState("");
@@ -12,7 +8,7 @@ const App = () => {
   const [conversationId, setConversationId] = useState<string>();
 
   const sendQuery = async () => {
-    const configurationOptions: StreamQueryConfig = {
+    const configurationOptions: ApiV1.StreamQueryConfig = {
       // Required fields.
       customerId: "1366999410",
       corpusIds: ["1"],
@@ -31,16 +27,16 @@ const App = () => {
       summaryPromptName: "vectara-experimental-summary-ext-2023-12-11-large",
     };
 
-    const onStreamUpdate = (update: StreamUpdate) => {
+    const onStreamUpdate = (update: ApiV1.StreamUpdate) => {
       console.log(update);
       const { updatedText, details } = update;
-      if (details.chat) {
+      if (details?.chat) {
         setConversationId(details.chat.conversationId);
       }
       setAnswer(updatedText);
     };
 
-    streamQuery(configurationOptions, onStreamUpdate);
+    streamQueryV1(configurationOptions, onStreamUpdate);
   };
 
   return (

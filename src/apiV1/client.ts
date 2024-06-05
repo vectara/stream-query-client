@@ -6,11 +6,13 @@ import {
   StreamUpdateHandler,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
-import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "./constants";
+import {
+  SNIPPET_START_TAG,
+  SNIPPET_END_TAG,
+  DEFAULT_ENDPOINT,
+} from "../common/constants";
 
-const DEFAULT_ENDPOINT = "api.vectara.io";
-
-export const streamQuery = async (
+export const streamQueryV1 = async (
   config: StreamQueryConfig,
   onStreamUpdate: StreamUpdateHandler
 ) => {

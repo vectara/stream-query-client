@@ -1,5 +1,4 @@
-import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "./constants";
-
+import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "../common/constants";
 import { DeserializedSearchResult, DocMetadata, SearchResponse } from "./types";
 
 /**

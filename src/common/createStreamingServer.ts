@@ -7,9 +7,9 @@ const createChunk = (json: any) => {
   return encoder.encode(JSON.stringify(json));
 };
 
-export const createStreamingServer = (chunks: any[]) => {
+export const createStreamingServer = (path: string, chunks: any[]) => {
   return setupServer(
-    http.post("https://api.vectara.io/v1/stream-query", () => {
+    http.post(`https://api.vectara.io${path}`, () => {
       const stream = new ReadableStream({
         start(controller) {
           chunks.forEach((chunk) => {
