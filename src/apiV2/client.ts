@@ -169,7 +169,7 @@ export const streamQueryV2 = async (
           }
 
           const streamUpdate: StreamUpdate = {
-            responseSet: dataObj.result.responseSet,
+            responseSet: dataObj.result.responseSet ?? undefined,
             details,
             updatedText: getUpdatedText(dataObj.result, previousAnswerText),
             isDone: dataObj.result.summary?.done ?? false,
