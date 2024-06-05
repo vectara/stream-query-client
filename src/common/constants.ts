@@ -1,1 +1,1 @@
-export const DEFAULT_ENDPOINT = "https://api.vectara.io";
+export const DEFAULT_DOMAIN = "https://api.vectara.io";
