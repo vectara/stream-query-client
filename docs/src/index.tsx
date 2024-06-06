@@ -21,7 +21,9 @@ const CORPUS_ID = "203";
 const App = () => {
   const [question, setQuestion] = useState("markdown");
   const [answerV1, setAnswerV1] = useState<string>();
+  const [resultsV1, setResultsV1] = useState<string>();
   const [answerV2, setAnswerV2] = useState<string>();
+  const [resultsV2, setResultsV2] = useState<string>();
   const [conversationIdV1, setConversationIdV1] = useState<string>();
   const [conversationIdV2, setConversationIdV2] = useState<string>();
 
@@ -34,7 +36,7 @@ const App = () => {
 
       // Optional fields.
       queryValue: question,
-      summaryNumResults: 5,
+      summaryNumResults: 2,
       language: "eng",
       chat: {
         store: true,
@@ -46,12 +48,18 @@ const App = () => {
     };
 
     const onStreamUpdate = (update: ApiV1.StreamUpdate) => {
-      console.log("v1", update);
-      const { updatedText, details } = update;
+      // console.log("v1", update);
+      const { updatedText, details, references } = update;
+
       if (details?.chat) {
         setConversationIdV1(details.chat.conversationId);
       }
+
       setAnswerV1(updatedText);
+
+      if (references) {
+        setResultsV1(JSON.stringify(references));
+      }
     };
 
     streamQueryV1(configurationOptions, onStreamUpdate);
@@ -66,7 +74,7 @@ const App = () => {
       search: {
         offset: 0,
         metadataFilter: "",
-        limit: 1,
+        limit: 2,
         lexicalInterpolation: 0,
         contextConfiguration: {
           sentencesBefore: 2,
@@ -86,14 +94,18 @@ const App = () => {
     };
 
     const onStreamUpdate = (update: ApiV2.StreamUpdate) => {
-      console.log("v2", update);
-      const { updatedText, chatId } = update;
+      // console.log("v2", update);
+      const { updatedText, chatId, searchResults } = update;
       if (chatId) {
         setConversationIdV2(chatId);
       }
 
       if (updatedText) {
         setAnswerV2(updatedText);
+      }
+
+      if (searchResults) {
+        setResultsV2(JSON.stringify(searchResults));
       }
     };
 
@@ -109,7 +121,9 @@ const App = () => {
       <button
         onClick={() => {
           setAnswerV1("");
+          setResultsV1("");
           setAnswerV2("");
+          setResultsV2("");
           sendQueryV1();
           sendQueryV2();
         }}
@@ -117,13 +131,19 @@ const App = () => {
         Send
       </button>
 
-      <h2>Stream Query Client v1 answer</h2>
+      <div style={{ display: "flex" }}>
+        <div style={{ flexGrow: "1", flexShrink: "1", width: "50%" }}>
+          <h2>Stream Query Client v1 answer</h2>
+          <p>{resultsV1}</p>
+          <p>{answerV1}</p>
+        </div>
 
-      <p>{answerV1}</p>
-
-      <h2>Stream Query Client v2 answer</h2>
-
-      <p>{answerV2}</p>
+        <div style={{ flexGrow: "1", flexShrink: "1", width: "50%" }}>
+          <h2>Stream Query Client v2 answer</h2>
+          <p>{resultsV2}</p>
+          <p>{answerV2}</p>
+        </div>
+      </div>
     </>
   );
 };
