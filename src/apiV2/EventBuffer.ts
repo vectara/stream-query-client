@@ -16,7 +16,10 @@ export class EventBuffer {
     const parts = chunk.split("\n");
 
     parts.forEach((part: string) => {
+      // Skip empty lines.
       if (part.trim().length === 0) return;
+
+      // Skip "header" lines.
       if (part.indexOf("event:") === 0) return;
 
       // Beginning of an event.
@@ -38,7 +41,6 @@ export class EventBuffer {
   }
 
   private enqueueEvent() {
-    // Trim the "data:" prefix to get the JSON.
     const dataObj = JSON.parse(this.eventInProgress);
 
     const {
