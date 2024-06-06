@@ -104,19 +104,43 @@ export type FactualConsistency = {
   score: number;
 };
 
-export type StreamUpdate = {
-  type:
-    | "searchResults"
-    | "chatInfo"
-    | "generationChunk"
-    | "factualConsistencyScore"
-    | "end";
-  searchResults?: SearchResult[];
-  chatId?: string;
-  turnId?: string;
-  updatedText?: string;
-  generationChunk?: string;
-  factualConsistencyScore?: number;
+export type StreamUpdate =
+  | ErrorUpdate
+  | SearchResultsUpdate
+  | ChatInfoUpdate
+  | GenerationChunkUpdate
+  | FactualConsistencyScoreUpdate
+  | EndUpdate;
+
+export type ErrorUpdate = {
+  type: "error";
+  messages?: string[];
+};
+
+export type SearchResultsUpdate = {
+  type: "searchResults";
+  searchResults: SearchResult[];
+};
+
+export type ChatInfoUpdate = {
+  type: "chatInfo";
+  chatId: string;
+  turnId: string;
+};
+
+export type GenerationChunkUpdate = {
+  type: "generationChunk";
+  updatedText: string;
+  generationChunk: string;
+};
+
+export type FactualConsistencyScoreUpdate = {
+  type: "factualConsistencyScore";
+  factualConsistencyScore: number;
+};
+
+export type EndUpdate = {
+  type: "end";
 };
 
 export type StreamUpdateHandler = (update: StreamUpdate) => void;
