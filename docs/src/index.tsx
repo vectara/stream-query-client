@@ -19,9 +19,11 @@ const CORPUS_ID = "203";
 // const CORPUS_ID = "232";
 
 const App = () => {
-  const [questionV1, setQuestionV1] = useState("What is Vectara?");
+  const [question, setQuestion] = useState("markdown");
   const [answerV1, setAnswerV1] = useState<string>();
+  const [answerV2, setAnswerV2] = useState<string>();
   const [conversationIdV1, setConversationIdV1] = useState<string>();
+  const [conversationIdV2, setConversationIdV2] = useState<string>();
 
   const sendQueryV1 = async () => {
     const configurationOptions: ApiV1.StreamQueryConfig = {
@@ -31,7 +33,7 @@ const App = () => {
       apiKey: API_KEY,
 
       // Optional fields.
-      queryValue: questionV1,
+      queryValue: question,
       summaryNumResults: 5,
       language: "eng",
       chat: {
@@ -55,20 +57,16 @@ const App = () => {
     streamQueryV1(configurationOptions, onStreamUpdate);
   };
 
-  const [questionV2, setQuestionV2] = useState("markdown");
-  const [answerV2, setAnswerV2] = useState<string>();
-  const [conversationIdV2, setConversationIdV2] = useState<string>();
-
   const sendQueryV2 = async () => {
     const configurationOptions: ApiV2.StreamQueryConfig = {
       customerId: CUSTOMER_ID,
       apiKey: API_KEY,
-      query: questionV2,
+      query: question,
       corpusKey: `${CORPUS_NAME}_${CORPUS_ID}`,
       search: {
         offset: 0,
         metadataFilter: "",
-        limit: 10,
+        limit: 1,
         lexicalInterpolation: 0,
         contextConfiguration: {
           sentencesBefore: 2,
@@ -85,7 +83,6 @@ const App = () => {
         store: true,
         conversationId: conversationIdV2,
       },
-      stream_response: true,
     };
 
     const onStreamUpdate = (update: ApiV2.StreamUpdate) => {
@@ -105,47 +102,26 @@ const App = () => {
 
   return (
     <>
-      <h1>Stream Query Client v1</h1>
-
       <h2>Question</h2>
 
-      <input
-        value={questionV1}
-        onChange={(e) => setQuestionV1(e.target.value)}
-      />
+      <input value={question} onChange={(e) => setQuestion(e.target.value)} />
 
       <button
         onClick={() => {
           setAnswerV1("");
-          sendQueryV1();
-        }}
-      >
-        Send
-      </button>
-
-      <h2>Answer</h2>
-
-      <p>{answerV1}</p>
-
-      <h1>Stream Query Client v2</h1>
-
-      <h2>Question</h2>
-
-      <input
-        value={questionV2}
-        onChange={(e) => setQuestionV2(e.target.value)}
-      />
-
-      <button
-        onClick={() => {
           setAnswerV2("");
+          sendQueryV1();
           sendQueryV2();
         }}
       >
         Send
       </button>
 
-      <h2>Answer</h2>
+      <h2>Stream Query Client v1 answer</h2>
+
+      <p>{answerV1}</p>
+
+      <h2>Stream Query Client v2 answer</h2>
 
       <p>{answerV2}</p>
     </>

@@ -87,8 +87,6 @@ export type StreamQueryConfig = {
     store?: boolean;
     conversationId?: string;
   };
-
-  stream_response: boolean;
 };
 
 export type Summary = {

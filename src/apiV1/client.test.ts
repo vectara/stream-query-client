@@ -2,13 +2,21 @@ import { SetupServerApi } from "msw/node";
 import { streamQueryV1 } from "./client";
 import { StreamQueryConfig, StreamUpdate } from "./types";
 import { createTestStreamingServer } from "../common/createTestStreamingServer";
-import { chunks } from "../common/client.mocks";
+import { chunks } from "./client.mocks";
+
+const encoder = new TextEncoder();
 
 describe("stream-query-client API v1", () => {
   let server: SetupServerApi;
 
   beforeAll(async () => {
-    server = createTestStreamingServer("/v1/stream-query", chunks);
+    server = createTestStreamingServer(
+      "/v1/stream-query",
+      chunks,
+      (json: any) => {
+        return encoder.encode(JSON.stringify(json));
+      }
+    );
     await server.listen();
   });
 
