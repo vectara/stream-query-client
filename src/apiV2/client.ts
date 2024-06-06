@@ -156,7 +156,6 @@ export const streamQueryV2 = async (
         for await (const chunk of stream) {
           try {
             buffer.consumeChunk(chunk);
-            buffer.drainEvents();
           } catch (error) {
             console.log("error", error);
           }

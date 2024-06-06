@@ -38,6 +38,8 @@ export class EventBuffer {
         this.eventInProgress = "";
       } catch {}
     });
+
+    this.drainEvents();
   }
 
   private enqueueEvent() {
@@ -103,7 +105,7 @@ export class EventBuffer {
     }
   }
 
-  drainEvents() {
+  private drainEvents() {
     // Emit all events that are complete and reset the queue.
     this.events.forEach((event) => {
       this.onStreamEvent(event);
