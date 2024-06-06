@@ -46,7 +46,7 @@ const App = () => {
     };
 
     const onStreamUpdate = (update: ApiV1.StreamUpdate) => {
-      console.log(update);
+      console.log("v1", update);
       const { updatedText, details } = update;
       if (details?.chat) {
         setConversationIdV1(details.chat.conversationId);
@@ -86,7 +86,7 @@ const App = () => {
     };
 
     const onStreamUpdate = (update: ApiV2.StreamUpdate) => {
-      console.log(update);
+      console.log("v2", update);
       const { updatedText, chatId } = update;
       if (chatId) {
         setConversationIdV2(chatId);
