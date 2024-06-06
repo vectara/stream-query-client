@@ -1,11 +1,12 @@
 import {
   GenerationConfig,
   StreamQueryConfig,
-  StreamUpdateHandler,
+  StreamEventHandler,
 } from "./types";
 import { QueryBody } from "./apiTypes";
 import { DEFAULT_DOMAIN } from "../common/constants";
 import { generateStream } from "../common/generateStream";
+import { EventBuffer } from "./EventBuffer";
 
 const convertReranker = (
   reranker?: StreamQueryConfig["search"]["reranker"]
@@ -47,7 +48,7 @@ const convertCitations = (citations?: GenerationConfig["citations"]) => {
 
 export const streamQueryV2 = async (
   config: StreamQueryConfig,
-  onStreamUpdate: StreamUpdateHandler
+  onStreamEvent: StreamEventHandler
 ) => {
   const {
     customerId,
@@ -143,85 +144,12 @@ export const streamQueryV2 = async (
 
   try {
     const stream = await generateStream(headers, JSON.stringify(body), url);
-
-    let updatedText = "";
-
-    // A single event might be split across multiple chunks, so we need to buffer
-    // them and then use the presence of the "event:" prefix to know when to process
-    // the buffered data.
-    let eventBuffer = "";
+    const buffer = new EventBuffer(onStreamEvent);
 
     for await (const chunk of stream) {
       try {
-        const isNewEvent = chunk.slice(0, 6) === "event:";
-        if (isNewEvent) {
-          if (eventBuffer) {
-            const parts = eventBuffer.split("\n");
-
-            parts
-              .filter((part: string) => {
-                return part.indexOf("data:") === 0;
-              })
-              .forEach((part: string) => {
-                // Trim the "data:" prefix to get the JSON.
-                const data = part.slice(5, part.length);
-                const dataObj = JSON.parse(data);
-
-                const {
-                  type,
-                  search_results,
-                  chat_id,
-                  turn_id,
-                  factual_consistency_score,
-                  generation_chunk,
-                } = dataObj;
-
-                switch (type) {
-                  case "search_results":
-                    onStreamUpdate({
-                      type: "searchResults",
-                      searchResults: search_results,
-                    });
-                    break;
-
-                  case "chat_info":
-                    onStreamUpdate({
-                      type: "chatInfo",
-                      chatId: chat_id,
-                      turnId: turn_id,
-                    });
-                    break;
-
-                  case "generation_chunk":
-                    updatedText += generation_chunk;
-                    onStreamUpdate({
-                      type: "generationChunk",
-                      updatedText,
-                      generationChunk: generation_chunk,
-                    });
-                    break;
-
-                  case "factual_consistency_score":
-                    onStreamUpdate({
-                      type: "factualConsistencyScore",
-                      factualConsistencyScore: factual_consistency_score,
-                    });
-                    break;
-
-                  case "end":
-                    onStreamUpdate({
-                      type: "end",
-                    });
-                    break;
-                }
-              });
-          }
-
-          eventBuffer = "";
-        }
-
-        // Concatenate the chunk to the buffer.
-        eventBuffer += chunk;
+        buffer.consumeChunk(chunk);
+        buffer.drainEvents();
       } catch (error) {
         console.log("error", error);
       }

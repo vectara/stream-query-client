@@ -1,6 +1,6 @@
 import { SetupServerApi } from "msw/node";
 import { streamQueryV2 } from "./client";
-import { StreamQueryConfig, StreamUpdate } from "./types";
+import { StreamQueryConfig, StreamEvent } from "./types";
 import { createTestStreamingServer } from "../common/createTestStreamingServer";
 import { chunks } from "./client.mocks";
 
@@ -48,7 +48,7 @@ describe("stream-query-client API v2", () => {
 
     const handleUpdate = jest.fn();
 
-    const onStreamUpdate = (update: StreamUpdate) => {
+    const onStreamUpdate = (update: StreamEvent) => {
       handleUpdate(update);
     };
 

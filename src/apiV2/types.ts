@@ -104,46 +104,46 @@ export type FactualConsistency = {
   score: number;
 };
 
-export type StreamUpdate =
-  | ErrorUpdate
-  | SearchResultsUpdate
-  | ChatInfoUpdate
-  | GenerationChunkUpdate
-  | FactualConsistencyScoreUpdate
-  | EndUpdate;
+export type StreamEvent =
+  | ErrorEvent
+  | SearchResultsEvent
+  | ChatInfoEvent
+  | GenerationChunkEvent
+  | FactualConsistencyScoreEvent
+  | EndEvent;
 
-export type ErrorUpdate = {
+export type ErrorEvent = {
   type: "error";
   messages?: string[];
 };
 
-export type SearchResultsUpdate = {
+export type SearchResultsEvent = {
   type: "searchResults";
   searchResults: SearchResult[];
 };
 
-export type ChatInfoUpdate = {
+export type ChatInfoEvent = {
   type: "chatInfo";
   chatId: string;
   turnId: string;
 };
 
-export type GenerationChunkUpdate = {
+export type GenerationChunkEvent = {
   type: "generationChunk";
   updatedText: string;
   generationChunk: string;
 };
 
-export type FactualConsistencyScoreUpdate = {
+export type FactualConsistencyScoreEvent = {
   type: "factualConsistencyScore";
   factualConsistencyScore: number;
 };
 
-export type EndUpdate = {
+export type EndEvent = {
   type: "end";
 };
 
-export type StreamUpdateHandler = (update: StreamUpdate) => void;
+export type StreamEventHandler = (event: StreamEvent) => void;
 
 export type DocMetadata = {
   name: string;

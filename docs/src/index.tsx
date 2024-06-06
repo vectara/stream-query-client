@@ -93,9 +93,8 @@ const App = () => {
       },
     };
 
-    const onStreamUpdate = (update: ApiV2.StreamUpdate) => {
-      // console.log("v2", update);
-      const { updatedText, chatId, searchResults } = update;
+    const onStreamEvent = (event: ApiV2.StreamEvent) => {
+      const { updatedText, chatId, searchResults } = event;
       if (chatId) {
         setConversationIdV2(chatId);
       }
@@ -107,9 +106,13 @@ const App = () => {
       if (searchResults) {
         setResultsV2(JSON.stringify(searchResults));
       }
+
+      if (event.type === "error") {
+        console.log("Error", event.messages);
+      }
     };
 
-    streamQueryV2(configurationOptions, onStreamUpdate);
+    streamQueryV2(configurationOptions, onStreamEvent);
   };
 
   return (
