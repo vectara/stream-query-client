@@ -1,15 +1,12 @@
 import {
-  Chat,
   GenerationConfig,
-  ParsedResult,
   StreamQueryConfig,
-  StreamUpdate,
   StreamUpdateHandler,
 } from "./types";
 import { QueryBody } from "./apiTypes";
+import { processStreamChunk } from "./processStreamChunk";
 import { DEFAULT_DOMAIN } from "../common/constants";
-import { generateStream } from "common/generateStream";
-import { processStreamChunk } from "common/processStreamPart";
+import { generateStream } from "../common/generateStream";
 
 const convertReranker = (
   reranker?: StreamQueryConfig["search"]["reranker"]
@@ -57,8 +54,18 @@ export const streamQueryV2 = async (
     customerId,
     apiKey,
     endpoint,
+    corpusKey,
     query,
-    search: { offset, corpora, limit, contextConfiguration, reranker },
+    search: {
+      metadataFilter,
+      lexicalInterpolation,
+      customDimensions,
+      semantics,
+      offset,
+      limit,
+      contextConfiguration,
+      reranker,
+    },
     generation: {
       promptName,
       maxUsedSearchResults,
@@ -71,28 +78,19 @@ export const streamQueryV2 = async (
     chat,
   } = config;
 
-  const body: QueryBody = {
+  let body: QueryBody = {
     query,
     search: {
-      offset,
-      corpora: corpora.map(
-        ({
-          corpusKey,
-          metadataFilter,
-          lexicalInterpolation,
-          customDimensions,
-          semantics,
-        }) => ({
+      corpora: [
+        {
           corpus_key: corpusKey,
           metadata_filter: metadataFilter,
           lexical_interpolation: lexicalInterpolation,
-          custom_dimensions: customDimensions?.reduce(
-            (acc, { name, weight }) => ({ ...acc, [name]: weight }),
-            {} as Record<string, number>
-          ),
+          custom_dimensions: customDimensions,
           semantics,
-        })
-      ),
+        },
+      ],
+      offset,
       limit,
       context_configuration: {
         characters_before: contextConfiguration?.charactersBefore,
@@ -121,7 +119,20 @@ export const streamQueryV2 = async (
     chat: chat && {
       store: chat.store,
     },
+    stream_response: true,
   };
+
+  let path;
+
+  if (!chat) {
+    path = `/v2/query`;
+  } else {
+    if (chat.conversationId) {
+      path = `/v2/chats/${chat.conversationId}/turns`;
+    } else {
+      path = "/v2/chats";
+    }
+  }
 
   const headers = {
     "x-api-key": apiKey,
@@ -129,101 +140,73 @@ export const streamQueryV2 = async (
     "Content-Type": "application/json",
   };
 
-  const path = !chat
-    ? "/v2/query"
-    : chat.conversationId
-    ? `/v2/chats/${chat.conversationId}/turns`
-    : "/v2/chats";
-
   const url = `${endpoint ?? DEFAULT_DOMAIN}${path}`;
 
-  const stream = await generateStream(headers, JSON.stringify(body), url);
+  try {
+    const stream = await generateStream(headers, JSON.stringify(body), url);
 
-  let previousAnswerText = "";
+    let updatedText = "";
 
-  for await (const chunk of stream) {
-    try {
-      processStreamChunk(chunk, (part: string) => {
-        const dataObj = JSON.parse(part);
+    for await (const chunk of stream) {
+      try {
+        processStreamChunk(chunk, (part: string) => {
+          // Trim the "data:" prefix to get the JSON.
+          const data = part.slice(5, part.length);
+          const dataObj = JSON.parse(data);
 
-        if (!dataObj.result) return;
+          const {
+            type,
+            search_results,
+            chat_id,
+            turn_id,
+            factual_consistency_score,
+            generation_chunk,
+          } = dataObj;
 
-        const details: StreamUpdate["details"] = {};
+          switch (type) {
+            case "search_results":
+              onStreamUpdate({
+                type: "searchResults",
+                searchResults: search_results,
+              });
+              break;
 
-        // TODO: Add back once debug has been added back to API v2.
-        // const summaryDetail = getSummaryDetail(config, dataObj.result);
-        // if (summaryDetail) {
-        //   details.summary = summaryDetail;
-        // }
+            case "chat_info":
+              onStreamUpdate({
+                type: "chatInfo",
+                chatId: chat_id,
+                turnId: turn_id,
+              });
+              break;
 
-        const chatDetail = getChatDetail(dataObj.result);
-        if (chatDetail) {
-          details.chat = chatDetail;
-        }
+            case "generation_chunk":
+              updatedText += generation_chunk;
+              onStreamUpdate({
+                type: "generationChunk",
+                updatedText,
+                generationChunk: generation_chunk,
+              });
+              break;
 
-        const fcsDetail = getFactualConsistencyDetail(dataObj.result);
-        if (fcsDetail) {
-          details.factualConsistency = fcsDetail;
-        }
+            case "factual_consistency_score":
+              onStreamUpdate({
+                type: "factualConsistencyScore",
+                factualConsistencyScore: factual_consistency_score,
+              });
+              break;
 
-        const streamUpdate: StreamUpdate = {
-          responseSet: dataObj.result.responseSet ?? undefined,
-          details,
-          updatedText: getUpdatedText(dataObj.result, previousAnswerText),
-          isDone: dataObj.result.summary?.done ?? false,
-        };
-
-        previousAnswerText = streamUpdate.updatedText ?? "";
-
-        onStreamUpdate(streamUpdate);
-      });
-    } catch (error) {}
+            case "end":
+              onStreamUpdate({
+                type: "end",
+              });
+              break;
+          }
+        });
+      } catch (error) {
+        console.log("error", error);
+      }
+    }
+  } catch (error) {
+    console.log("error", error);
   }
-};
-
-// TODO: Add back once debug has been added back to API v2.
-// const getSummaryDetail = (
-//   config: StreamQueryConfig,
-//   parsedResult: ParsedResult
-// ) => {
-//   if (!parsedResult.summary) return;
-
-//   if (config.debug && parsedResult.summary.prompt) {
-//     return {
-//       prompt: parsedResult.summary.prompt,
-//     };
-//   }
-// };
-
-const getChatDetail = (
-  // config: StreamQueryConfig,
-  parsedResult: ParsedResult
-) => {
-  if (!parsedResult.summary?.chat) return;
-
-  const chatDetail: Chat = {
-    conversationId: parsedResult.summary.chat.conversationId,
-    turnId: parsedResult.summary.chat.turnId,
-  };
-
-  // TODO: Add back once debug has been added back to API v2.
-  // if (config.debug && parsedResult.summary.chat.rephrasedQuery) {
-  //   chatDetail.rephrasedQuery = parsedResult.summary.chat.rephrasedQuery;
-  // }
-
-  return chatDetail;
-};
-
-const getFactualConsistencyDetail = (parsedResult: ParsedResult) => {
-  if (!parsedResult.summary || !parsedResult.summary.factualConsistency) return;
-
-  return {
-    score: parsedResult.summary.factualConsistency.score,
-  };
-};
-
-const getUpdatedText = (parsedResult: ParsedResult, previousText: string) => {
-  if (!parsedResult.summary) return;
-
-  return `${previousText}${parsedResult.summary.text}`;
 };

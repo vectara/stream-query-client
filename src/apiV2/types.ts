@@ -1,4 +1,5 @@
 import { SummaryLanguage } from "../common/types";
+import { SearchResult } from "./apiTypes";
 
 export type GenerationConfig = {
   // The preferred prompt to use, if applicable
@@ -42,18 +43,17 @@ export type StreamQueryConfig = {
   // The query to send to the API. This is the user input.
   query: string;
 
+  corpusKey: string;
+
   search: {
+    metadataFilter: string;
+    // A number from 0.0 -> 1.0 that determines how much to leverage neural search and keyword search.
+    // A value of 0.0 is purely neural search, where a value of 1.0 is purely keyword search.
+    // Numbers in between are a combination of the two, leaning one way or another.
+    lexicalInterpolation?: number;
+    customDimensions?: Record<string, number>;
+    semantics?: "default" | "query" | "response";
     offset: number;
-    corpora: Array<{
-      corpusKey: string;
-      metadataFilter: string;
-      // A number from 0.0 -> 1.0 that determines how much to leverage neural search and keyword search.
-      // A value of 0.0 is purely neural search, where a value of 1.0 is purely keyword search.
-      // Numbers in between are a combination of the two, leaning one way or another.
-      lexicalInterpolation?: number;
-      customDimensions?: Array<{ name: string; weight: number }>;
-      semantics?: "default" | "query" | "response";
-    }>;
     limit?: number;
     contextConfiguration?: {
       charactersBefore?: number;
@@ -87,6 +87,8 @@ export type StreamQueryConfig = {
     store?: boolean;
     conversationId?: string;
   };
+
+  stream_response: boolean;
 };
 
 export type Summary = {
@@ -104,48 +106,19 @@ export type FactualConsistency = {
   score: number;
 };
 
-// A subset of the Vectara query response, in parsed form.
-// This types only data relevant to stream processing
-export type ParsedResult = {
-  responseSet: {
-    document: Array<{
-      id: string;
-      metadata: Array<DocMetadata>;
-    }>;
-    response: Array<{
-      corpusKey: { corpusId: number };
-      documentIndex: number;
-      score: number;
-      text: string;
-    }>;
-  };
-  summary?: {
-    chat?: Chat;
-    factualConsistency?: FactualConsistency;
-    done: boolean;
-    text: string;
-    // Provided only when debug: true
-    prompt?: string;
-  };
-};
-
 export type StreamUpdate = {
-  // A list of references that apply to the query response.
-  responseSet?: ParsedResult["responseSet"];
-
-  // A concatenation of all text chunks the streaming API has returned so far.
-  // Use this when updating your UI text display.
+  type:
+    | "searchResults"
+    | "chatInfo"
+    | "generationChunk"
+    | "factualConsistencyScore"
+    | "end";
+  searchResults?: SearchResult[];
+  chatId?: string;
+  turnId?: string;
   updatedText?: string;
-
-  // true, if streaming has completed.
-  isDone: boolean;
-
-  // Any additional details that apply to the query response.
-  details?: {
-    summary?: Summary;
-    chat?: Chat;
-    factualConsistency?: FactualConsistency;
-  };
+  generationChunk?: string;
+  factualConsistencyScore?: number;
 };
 
 export type StreamUpdateHandler = (update: StreamUpdate) => void;

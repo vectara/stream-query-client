@@ -7,13 +7,19 @@ import {
   ApiV2,
 } from "@vectara/stream-query-client";
 
-const CUSTOMER_ID = "1526022105";
-const API_KEY = "zqt_WvU_2ewh7ZGRwq8LdL2SV8B9RJmVGyUm1VAuOw";
-const CORPUS_NAME = "ofer-bm-moma-docs";
-const CORPUS_ID = "232";
+// TODO: Switch back to prod values before merging
+const CUSTOMER_ID = "3099635174";
+const API_KEY = "zqt_uMCt5uGR7CXARu7QHg7GDYNG5Q5v58HOpvQO0A";
+const CORPUS_NAME = "markdown";
+const CORPUS_ID = "203";
+
+// const CUSTOMER_ID = "1526022105";
+// const API_KEY = "zqt_WvU_2ewh7ZGRwq8LdL2SV8B9RJmVGyUm1VAuOw";
+// const CORPUS_NAME = "ofer-bm-moma-docs";
+// const CORPUS_ID = "232";
 
 const App = () => {
-  const [questionV1, setQuestionV1] = useState("");
+  const [questionV1, setQuestionV1] = useState("What is Vectara?");
   const [answerV1, setAnswerV1] = useState<string>();
   const [conversationIdV1, setConversationIdV1] = useState<string>();
 
@@ -49,7 +55,7 @@ const App = () => {
     streamQueryV1(configurationOptions, onStreamUpdate);
   };
 
-  const [questionV2, setQuestionV2] = useState("");
+  const [questionV2, setQuestionV2] = useState("markdown");
   const [answerV2, setAnswerV2] = useState<string>();
   const [conversationIdV2, setConversationIdV2] = useState<string>();
 
@@ -57,16 +63,17 @@ const App = () => {
     const configurationOptions: ApiV2.StreamQueryConfig = {
       customerId: CUSTOMER_ID,
       apiKey: API_KEY,
-      query: questionV1,
+      query: questionV2,
+      corpusKey: `${CORPUS_NAME}_${CORPUS_ID}`,
       search: {
         offset: 0,
-        corpora: [
-          {
-            corpusKey: `${CORPUS_NAME}_${CORPUS_ID}`,
-            metadataFilter: "",
-          },
-        ],
-        limit: 5,
+        metadataFilter: "",
+        limit: 10,
+        lexicalInterpolation: 0,
+        contextConfiguration: {
+          sentencesBefore: 2,
+          sentencesAfter: 2,
+        },
       },
       generation: {
         maxUsedSearchResults: 5,
@@ -78,15 +85,19 @@ const App = () => {
         store: true,
         conversationId: conversationIdV2,
       },
+      stream_response: true,
     };
 
     const onStreamUpdate = (update: ApiV2.StreamUpdate) => {
       console.log(update);
-      const { updatedText, details } = update;
-      if (details?.chat) {
-        setConversationIdV2(details.chat.conversationId);
+      const { updatedText, chatId } = update;
+      if (chatId) {
+        setConversationIdV2(chatId);
       }
-      setAnswerV2(updatedText);
+
+      if (updatedText) {
+        setAnswerV2(updatedText);
+      }
     };
 
     streamQueryV2(configurationOptions, onStreamUpdate);

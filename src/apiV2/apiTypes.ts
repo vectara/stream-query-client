@@ -11,14 +11,14 @@ export type MmrReranker = {
 };
 
 export type SearchConfiguration = {
-  offset: number;
   corpora: {
     corpus_key: string;
-    metadata_filter: string;
+    metadata_filter?: string;
     lexical_interpolation?: number;
     custom_dimensions?: Record<string, number>;
     semantics?: "default" | "query" | "response";
   }[];
+  offset: number;
   limit?: number;
   context_configuration?: {
     characters_before?: number;
@@ -82,4 +82,17 @@ export type QueryBody = {
   stream_response?: boolean;
   generation?: GenerationConfiguration;
   chat?: ChatConfiguration;
+};
+
+export type SearchResult = {
+  document_id: string;
+  text: string;
+  score: number;
+  part_metadata: {
+    lang: string;
+    section: number;
+    offset: number;
+    len: number;
+  };
+  document_metadata: Record<string, any>;
 };

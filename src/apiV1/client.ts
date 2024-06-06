@@ -6,10 +6,10 @@ import {
   StreamUpdateHandler,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
-import { DEFAULT_DOMAIN } from "../common/constants";
+import { processStreamChunk } from "./processStreamChunk";
 import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "./constants";
-import { generateStream } from "common/generateStream";
-import { processStreamChunk } from "common/processStreamPart";
+import { DEFAULT_DOMAIN } from "../common/constants";
+import { generateStream } from "../common/generateStream";
 
 export const streamQueryV1 = async (
   config: StreamQueryConfig,
