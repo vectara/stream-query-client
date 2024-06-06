@@ -31,32 +31,25 @@ npm install --save @vectara/stream-query-client
 Then use it in your application like this:
 
 ```js
-import {
-  streamQueryV2,
-  ApiV2,
-} from "@vectara/stream-query-client";
+import { streamQueryV2, ApiV2 } from "@vectara/stream-query-client";
 
 const sendQuery = async () => {
   const configurationOptions: ApiV2.StreamQueryConfig = {
     // Required fields.
     customerId: "customerIdValue",
     apiKey: "zqt_apiKeyValue",
+    corpusKey: "corpora_1",
     query: "How many coconuts can an African swallow carry?",
     search: {
       offset: 0,
-      corpora: [
-        {
-          corpusKey: "corpora_1",
-          metadataFilter: "",
-        },
-      ],
       limit: 5,
+      metadataFilter: "",
     },
     generation: {
       maxUsedSearchResults: 5,
       responseLanguage: "eng",
       enableFactualConsistencyScore: true,
-      promptName: ""summary-prompt-name",
+      promptName: "summary-prompt-name",
     },
   };
 
