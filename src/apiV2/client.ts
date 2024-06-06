@@ -143,17 +143,32 @@ export const streamQueryV2 = async (
   const url = `${endpoint ?? DEFAULT_DOMAIN}${path}`;
 
   try {
-    const stream = await generateStream(headers, JSON.stringify(body), url);
-    const buffer = new EventBuffer(onStreamEvent);
+    const { cancelStream, stream } = await generateStream(
+      headers,
+      JSON.stringify(body),
+      url
+    );
 
-    for await (const chunk of stream) {
+    new Promise(async (resolve, reject) => {
       try {
-        buffer.consumeChunk(chunk);
-        buffer.drainEvents();
+        const buffer = new EventBuffer(onStreamEvent);
+
+        for await (const chunk of stream) {
+          try {
+            buffer.consumeChunk(chunk);
+            buffer.drainEvents();
+          } catch (error) {
+            console.log("error", error);
+          }
+        }
+
+        resolve(undefined);
       } catch (error) {
-        console.log("error", error);
+        reject(error);
       }
-    }
+    });
+
+    return { cancelStream };
   } catch (error) {
     console.log("error", error);
   }

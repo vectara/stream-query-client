@@ -93,7 +93,7 @@ export const streamQueryV1 = async (
 
   const url = config.endpoint ?? `${DEFAULT_DOMAIN}/v1/stream-query`;
 
-  const stream = await generateStream(requestHeaders, requestBody, url);
+  const { stream } = await generateStream(requestHeaders, requestBody, url);
 
   let previousAnswerText = "";
 
