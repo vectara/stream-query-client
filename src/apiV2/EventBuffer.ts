@@ -1,14 +1,16 @@
 import { StreamEvent } from "./types";
 
 export class EventBuffer {
-  private events: StreamEvent[];
   private onStreamEvent: (event: StreamEvent) => void;
+  private includeRaw: boolean;
+  private events: StreamEvent[];
   private eventInProgress = "";
   private updatedText = "";
 
-  constructor(onStreamEvent: (event: any) => void) {
+  constructor(onStreamEvent: (event: any) => void, includeRaw = false) {
     this.events = [];
     this.onStreamEvent = onStreamEvent;
+    this.includeRaw = includeRaw;
   }
 
   consumeChunk(chunk: string) {
@@ -36,7 +38,9 @@ export class EventBuffer {
         const rawEvent = JSON.parse(this.eventInProgress);
         this.enqueueEvent(rawEvent);
         this.eventInProgress = "";
-      } catch {}
+      } catch {
+        // @tes-expect-error no-empty
+      }
     });
 
     this.drainEvents();
@@ -58,6 +62,7 @@ export class EventBuffer {
         this.events.push({
           type: "error",
           messages,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
@@ -65,6 +70,7 @@ export class EventBuffer {
         this.events.push({
           type: "searchResults",
           searchResults: search_results,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
@@ -73,6 +79,7 @@ export class EventBuffer {
           type: "chatInfo",
           chatId: chat_id,
           turnId: turn_id,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
@@ -82,12 +89,14 @@ export class EventBuffer {
           type: "generationChunk",
           updatedText: this.updatedText,
           generationChunk: generation_chunk,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
       case "generation_end":
         this.events.push({
           type: "generationEnd",
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
@@ -95,17 +104,19 @@ export class EventBuffer {
         this.events.push({
           type: "factualConsistencyScore",
           factualConsistencyScore: factual_consistency_score,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
       case "end":
         this.events.push({
           type: "end",
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
       default:
-        console.log(`Unhandled event: ${type}`, rawEvent);
+        console.log(`Unhandled StreamQueryClient event: ${type}`, rawEvent);
     }
   }
 

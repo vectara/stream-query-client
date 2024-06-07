@@ -2,6 +2,8 @@ import {
   GenerationConfig,
   StreamQueryConfig,
   StreamEventHandler,
+  StreamQueryRequest,
+  StreamQueryRequestHeaders,
 } from "./types";
 import { Query } from "./apiTypes";
 import { DEFAULT_DOMAIN } from "../common/constants";
@@ -46,10 +48,17 @@ const convertCitations = (citations?: GenerationConfig["citations"]) => {
   }
 };
 
-export const streamQueryV2 = async (
-  config: StreamQueryConfig,
-  onStreamEvent: StreamEventHandler
-) => {
+export const streamQueryV2 = async ({
+  streamQueryConfig,
+  onStreamEvent,
+  onError,
+  includeRawEvents,
+}: {
+  streamQueryConfig: StreamQueryConfig;
+  onStreamEvent: StreamEventHandler;
+  onError: (error: Error) => void;
+  includeRawEvents: boolean;
+}) => {
   const {
     customerId,
     apiKey,
@@ -77,7 +86,7 @@ export const streamQueryV2 = async (
       citations,
     } = {},
     chat,
-  } = config;
+  } = streamQueryConfig;
 
   const body: Query.Body = {
     query,
@@ -135,7 +144,7 @@ export const streamQueryV2 = async (
     }
   }
 
-  const headers: any = {
+  const headers: StreamQueryRequestHeaders = {
     "customer-id": customerId,
     "Content-Type": "application/json",
   };
@@ -144,6 +153,13 @@ export const streamQueryV2 = async (
   if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
 
   const url = `${domain ?? DEFAULT_DOMAIN}${path}`;
+
+  const request: StreamQueryRequest = {
+    method: "POST",
+    url,
+    headers,
+    body,
+  };
 
   try {
     const { cancelStream, stream } = await generateStream(
@@ -154,19 +170,25 @@ export const streamQueryV2 = async (
 
     const consumeStream = async () => {
       try {
-        const buffer = new EventBuffer(onStreamEvent);
+        const buffer = new EventBuffer(onStreamEvent, includeRawEvents);
 
         for await (const chunk of stream) {
           try {
             buffer.consumeChunk(chunk);
           } catch (error) {
-            console.log("error", error);
+            if (error instanceof Error) {
+              onError(error);
+            } else {
+              console.log("error", error);
+            }
           }
         }
       } catch (error) {
         if (error instanceof DOMException && error.name == "AbortError") {
           // Swallow the "DOMException: BodyStreamBuffer was aborted" error
           // triggered by cancelling a stream.
+        } else if (error instanceof Error) {
+          onError(error);
         } else {
           console.log("error", error);
         }
@@ -175,8 +197,14 @@ export const streamQueryV2 = async (
 
     consumeStream();
 
-    return { cancelStream };
+    return { cancelStream, request };
   } catch (error) {
-    console.log("error", error);
+    if (error instanceof Error) {
+      onError(error);
+    } else {
+      console.log("error", error);
+    }
   }
+
+  return { request };
 };

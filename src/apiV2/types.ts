@@ -95,6 +95,20 @@ export type StreamQueryConfig = {
   };
 };
 
+export type StreamQueryRequestHeaders = {
+  ["customer-id"]: string;
+  ["Content-Type"]: string;
+  ["x-api-key"]?: string;
+  ["Authorization"]?: string;
+};
+
+export type StreamQueryRequest = {
+  method: string;
+  url: string;
+  headers: StreamQueryRequestHeaders;
+  body: Query.Body;
+};
+
 export type StreamEvent =
   | ErrorEvent
   | SearchResultsEvent
@@ -104,38 +118,42 @@ export type StreamEvent =
   | FactualConsistencyScoreEvent
   | EndEvent;
 
-export type ErrorEvent = {
+type BaseEvent = {
+  raw?: any;
+};
+
+export type ErrorEvent = BaseEvent & {
   type: "error";
   messages: string[];
 };
 
-export type SearchResultsEvent = {
+export type SearchResultsEvent = BaseEvent & {
   type: "searchResults";
   searchResults: Query.SearchResult[];
 };
 
-export type ChatInfoEvent = {
+export type ChatInfoEvent = BaseEvent & {
   type: "chatInfo";
   chatId: string;
   turnId: string;
 };
 
-export type GenerationChunkEvent = {
+export type GenerationChunkEvent = BaseEvent & {
   type: "generationChunk";
   updatedText: string;
   generationChunk: string;
 };
 
-export type GenerationEndEvent = {
+export type GenerationEndEvent = BaseEvent & {
   type: "generationEnd";
 };
 
-export type FactualConsistencyScoreEvent = {
+export type FactualConsistencyScoreEvent = BaseEvent & {
   type: "factualConsistencyScore";
   factualConsistencyScore: number;
 };
 
-export type EndEvent = {
+export type EndEvent = BaseEvent & {
   type: "end";
 };
 
