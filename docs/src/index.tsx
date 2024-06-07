@@ -7,19 +7,13 @@ import {
   ApiV2,
 } from "@vectara/stream-query-client";
 
-// TODO: Switch back to prod values before merging
-const CUSTOMER_ID = "3099635174";
-const API_KEY = "zqt_uMCt5uGR7CXARu7QHg7GDYNG5Q5v58HOpvQO0A";
-const CORPUS_NAME = "markdown";
-const CORPUS_ID = "203";
-
-// const CUSTOMER_ID = "1526022105";
-// const API_KEY = "zqt_WvU_2ewh7ZGRwq8LdL2SV8B9RJmVGyUm1VAuOw";
-// const CORPUS_NAME = "ofer-bm-moma-docs";
-// const CORPUS_ID = "232";
+const CUSTOMER_ID = "1526022105";
+const API_KEY = "zqt_WvU_2ewh7ZGRwq8LdL2SV8B9RJmVGyUm1VAuOw";
+const CORPUS_NAME = "ofer-bm-moma-docs";
+const CORPUS_ID = "232";
 
 const App = () => {
-  const [question, setQuestion] = useState("markdown");
+  const [question, setQuestion] = useState("what is vectara");
   const [answerV1, setAnswerV1] = useState<string>();
   const [resultsV1, setResultsV1] = useState<string>();
   const [answerV2, setAnswerV2] = useState<string>();
@@ -36,7 +30,7 @@ const App = () => {
 
       // Optional fields.
       queryValue: question,
-      summaryNumResults: 2,
+      summaryNumResults: 10,
       language: "eng",
       chat: {
         store: true,
@@ -74,7 +68,7 @@ const App = () => {
       search: {
         offset: 0,
         metadataFilter: "",
-        limit: 2,
+        limit: 5,
         lexicalInterpolation: 0,
         contextConfiguration: {
           sentencesBefore: 2,
