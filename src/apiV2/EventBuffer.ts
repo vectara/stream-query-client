@@ -33,8 +33,8 @@ export class EventBuffer {
 
       try {
         // If we can parse the JSON, it's complete.
-        JSON.parse(this.eventInProgress);
-        this.enqueueEvent();
+        const rawEvent = JSON.parse(this.eventInProgress);
+        this.enqueueEvent(rawEvent);
         this.eventInProgress = "";
       } catch {}
     });
@@ -42,9 +42,7 @@ export class EventBuffer {
     this.drainEvents();
   }
 
-  private enqueueEvent() {
-    const dataObj = JSON.parse(this.eventInProgress);
-
+  private enqueueEvent(rawEvent: any) {
     const {
       type,
       messages,
@@ -53,7 +51,7 @@ export class EventBuffer {
       turn_id,
       factual_consistency_score,
       generation_chunk,
-    } = dataObj;
+    } = rawEvent;
 
     switch (type) {
       case "error":
