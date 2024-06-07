@@ -52,12 +52,12 @@ export const streamQueryV2 = async ({
   streamQueryConfig,
   onStreamEvent,
   onError,
-  includeRawEvents,
+  includeRawEvents = false,
 }: {
   streamQueryConfig: StreamQueryConfig;
   onStreamEvent: StreamEventHandler;
-  onError: (error: Error) => void;
-  includeRawEvents: boolean;
+  onError?: (error: Error) => void;
+  includeRawEvents?: boolean;
 }) => {
   const {
     customerId,
@@ -162,7 +162,7 @@ export const streamQueryV2 = async ({
   };
 
   try {
-    const { cancelStream, stream } = await generateStream(
+    const { cancelStream, stream, status } = await generateStream(
       headers,
       JSON.stringify(body),
       url
@@ -177,7 +177,7 @@ export const streamQueryV2 = async ({
             buffer.consumeChunk(chunk);
           } catch (error) {
             if (error instanceof Error) {
-              onError(error);
+              onError?.(error);
             } else {
               console.log("error", error);
             }
@@ -188,7 +188,7 @@ export const streamQueryV2 = async ({
           // Swallow the "DOMException: BodyStreamBuffer was aborted" error
           // triggered by cancelling a stream.
         } else if (error instanceof Error) {
-          onError(error);
+          onError?.(error);
         } else {
           console.log("error", error);
         }
@@ -197,10 +197,10 @@ export const streamQueryV2 = async ({
 
     consumeStream();
 
-    return { cancelStream, request };
+    return { cancelStream, request, status };
   } catch (error) {
     if (error instanceof Error) {
-      onError(error);
+      onError?.(error);
     } else {
       console.log("error", error);
     }

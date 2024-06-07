@@ -25,7 +25,7 @@ describe("stream-query-client API v2", () => {
   });
 
   it("streamQuery converts streamed chunks into usable data", async () => {
-    const configurationOptions: StreamQueryConfig = {
+    const streamQueryConfig: StreamQueryConfig = {
       customerId: "1366999410",
       apiKey: "zqt_UXrBcnI2UXINZkrv4g1tQPhzj02vfdtqYJIDiA",
       corpusKey: "1",
@@ -126,6 +126,6 @@ describe("stream-query-client API v2", () => {
       }
     };
 
-    await streamQueryV2(configurationOptions, onStreamEvent);
+    await streamQueryV2({ streamQueryConfig, onStreamEvent });
   });
 });

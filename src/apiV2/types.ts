@@ -116,7 +116,9 @@ export type StreamEvent =
   | GenerationChunkEvent
   | GenerationEndEvent
   | FactualConsistencyScoreEvent
-  | EndEvent;
+  | EndEvent
+  | UnexpectedErrorEvent
+  | UnexpectedEvent;
 
 type BaseEvent = {
   raw?: any;
@@ -155,6 +157,17 @@ export type FactualConsistencyScoreEvent = BaseEvent & {
 
 export type EndEvent = BaseEvent & {
   type: "end";
+};
+
+export type UnexpectedErrorEvent = {
+  type: "unexpectedError";
+  raw: any;
+};
+
+export type UnexpectedEvent = {
+  type: "unexpectedEvent";
+  rawType: string;
+  raw: any;
 };
 
 export type StreamEventHandler = (event: StreamEvent) => void;

@@ -12,12 +12,12 @@ export const generateStream = async (
     signal: controller.signal,
   });
 
-  if (response.status !== 200) throw new Error(response.status.toString());
   if (!response.body) throw new Error("Response body does not exist");
 
   return {
     stream: getIterableStream(response.body),
     cancelStream: () => controller.abort(),
+    status: response.status,
   };
 };
 

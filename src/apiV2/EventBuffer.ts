@@ -116,7 +116,19 @@ export class EventBuffer {
         break;
 
       default:
-        console.log(`Unhandled StreamQueryClient event: ${type}`, rawEvent);
+        if (!type) {
+          // Assume an error.
+          this.events.push({
+            type: "unexpectedError",
+            raw: rawEvent,
+          });
+        } else {
+          this.events.push({
+            type: "unexpectedEvent",
+            rawType: type,
+            raw: rawEvent,
+          });
+        }
     }
   }
 
