@@ -3,8 +3,8 @@ import { StreamEvent } from "./types";
 export class EventBuffer {
   private events: StreamEvent[];
   private onStreamEvent: (event: StreamEvent) => void;
-  private eventInProgress: string = "";
-  private updatedText: string = "";
+  private eventInProgress = "";
+  private updatedText = "";
 
   constructor(onStreamEvent: (event: any) => void) {
     this.events = [];

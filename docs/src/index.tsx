@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import {
   streamQueryV1,
@@ -20,6 +20,7 @@ const App = () => {
   const [resultsV2, setResultsV2] = useState<string>();
   const [conversationIdV1, setConversationIdV1] = useState<string>();
   const [conversationIdV2, setConversationIdV2] = useState<string>();
+  const cancelStream = useRef<(() => void) | null>(null);
 
   const sendQueryV1 = async () => {
     const configurationOptions: ApiV1.StreamQueryConfig = {
@@ -106,7 +107,12 @@ const App = () => {
       }
     };
 
-    streamQueryV2(configurationOptions, onStreamEvent);
+    const queryStream = await streamQueryV2(
+      configurationOptions,
+      onStreamEvent
+    );
+
+    cancelStream.current = queryStream?.cancelStream ?? null;
   };
 
   return (
@@ -127,6 +133,8 @@ const App = () => {
       >
         Send
       </button>
+
+      <button onClick={() => cancelStream.current?.()}>Cancel</button>
 
       <div style={{ display: "flex" }}>
         <div style={{ flexGrow: "1", flexShrink: "1", width: "50%" }}>

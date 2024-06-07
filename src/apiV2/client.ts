@@ -79,7 +79,7 @@ export const streamQueryV2 = async (
     chat,
   } = config;
 
-  let body: Query.Body = {
+  const body: Query.Body = {
     query,
     search: {
       corpora: [
@@ -152,7 +152,7 @@ export const streamQueryV2 = async (
       url
     );
 
-    new Promise(async (resolve, reject) => {
+    const consumeStream = async () => {
       try {
         const buffer = new EventBuffer(onStreamEvent);
 
@@ -163,12 +163,17 @@ export const streamQueryV2 = async (
             console.log("error", error);
           }
         }
-
-        resolve(undefined);
       } catch (error) {
-        reject(error);
+        if (error instanceof DOMException && error.name == "AbortError") {
+          // Swallow the "DOMException: BodyStreamBuffer was aborted" error
+          // triggered by cancelling a stream.
+        } else {
+          console.log("error", error);
+        }
       }
-    });
+    };
+
+    consumeStream();
 
     return { cancelStream };
   } catch (error) {

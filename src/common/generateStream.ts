@@ -3,7 +3,7 @@ export const generateStream = async (
   body: string,
   url: string
 ) => {
-  let controller = new AbortController();
+  const controller = new AbortController();
 
   const response = await fetch(url, {
     method: "POST",
