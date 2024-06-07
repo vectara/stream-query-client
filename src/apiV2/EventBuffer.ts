@@ -99,7 +99,7 @@ export class EventBuffer {
         break;
 
       default:
-        console.log(`Unhandled event: ${type}`, dataObj);
+        console.log(`Unhandled event: ${type}`, rawEvent);
     }
   }
 
