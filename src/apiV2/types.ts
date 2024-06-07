@@ -117,8 +117,9 @@ export type StreamEvent =
   | GenerationEndEvent
   | FactualConsistencyScoreEvent
   | EndEvent
-  | UnexpectedErrorEvent
-  | UnexpectedEvent;
+  | UnexpectedEvent
+  | RequestErrorEvent
+  | UnexpectedErrorEvent;
 
 type BaseEvent = {
   raw?: any;
@@ -159,14 +160,20 @@ export type EndEvent = BaseEvent & {
   type: "end";
 };
 
-export type UnexpectedErrorEvent = {
-  type: "unexpectedError";
-  raw: any;
-};
-
 export type UnexpectedEvent = {
   type: "unexpectedEvent";
   rawType: string;
+  raw: any;
+};
+
+export type RequestErrorEvent = {
+  type: "requestError";
+  status: number;
+  raw: any;
+};
+
+export type UnexpectedErrorEvent = {
+  type: "unexpectedError";
   raw: any;
 };
 

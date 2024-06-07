@@ -3,14 +3,20 @@ import { StreamEvent } from "./types";
 export class EventBuffer {
   private onStreamEvent: (event: StreamEvent) => void;
   private includeRaw: boolean;
+  private status: number;
   private events: StreamEvent[];
   private eventInProgress = "";
   private updatedText = "";
 
-  constructor(onStreamEvent: (event: any) => void, includeRaw = false) {
+  constructor(
+    onStreamEvent: (event: any) => void,
+    includeRaw = false,
+    status = 200
+  ) {
     this.events = [];
     this.onStreamEvent = onStreamEvent;
     this.includeRaw = includeRaw;
+    this.status = status;
   }
 
   consumeChunk(chunk: string) {
@@ -116,16 +122,23 @@ export class EventBuffer {
         break;
 
       default:
-        if (!type) {
-          // Assume an error.
-          this.events.push({
-            type: "unexpectedError",
-            raw: rawEvent,
-          });
-        } else {
+        if (type) {
           this.events.push({
             type: "unexpectedEvent",
             rawType: type,
+            raw: rawEvent,
+          });
+        } else if (this.status !== 200) {
+          // Assume an error.
+          this.events.push({
+            type: "requestError",
+            status: this.status,
+            raw: rawEvent,
+          });
+        } else {
+          // Assume an error.
+          this.events.push({
+            type: "unexpectedError",
             raw: rawEvent,
           });
         }

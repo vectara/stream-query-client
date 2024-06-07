@@ -170,7 +170,7 @@ export const streamQueryV2 = async ({
 
     const consumeStream = async () => {
       try {
-        const buffer = new EventBuffer(onStreamEvent, includeRawEvents);
+        const buffer = new EventBuffer(onStreamEvent, includeRawEvents, status);
 
         for await (const chunk of stream) {
           try {
