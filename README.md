@@ -31,38 +31,38 @@ npm install --save @vectara/stream-query-client
 Then use it in your application like this:
 
 ```js
-import {
-  streamQuery,
-  StreamUpdate,
-  StreamQueryConfig,
-} from "@vectara/stream-query-client";
+import { streamQueryV2, ApiV2 } from "@vectara/stream-query-client";
 
 const sendQuery = async () => {
-  const configurationOptions: StreamQueryConfig = {
+  const configurationOptions: ApiV2.StreamQueryConfig = {
     // Required fields.
     customerId: "customerIdValue",
-    corpusIds: ["2"],
     apiKey: "zqt_apiKeyValue",
-
-    // Optional fields.
-    queryValue: "Who put the ram in the ramalamadingdong?",
-    summaryNumResults: 5,
-    language: "eng",
-    debug: true,
-    enableFactualConsistencyScore: true,
-    summaryPromptName: "summary-prompt-name",
+    corpusKey: "corpora_1",
+    query: "How many coconuts can an African swallow carry?",
+    search: {
+      offset: 0,
+      limit: 5,
+      metadataFilter: "",
+    },
+    generation: {
+      maxUsedSearchResults: 5,
+      responseLanguage: "eng",
+      enableFactualConsistencyScore: true,
+      promptName: "summary-prompt-name",
+    },
   };
 
-  const onStreamUpdate = (update: StreamUpdate) => {
+  const onStreamUpdate = (update: ApiV2.StreamUpdate) => {
     // Perform operations on returned data, e.g. update state.
     console.log(update.updatedText);
   };
 
-  streamQuery(configurationOptions, onStreamUpdate);
+  streamQueryV2(configurationOptions, onStreamUpdate);
 };
 ```
 
-For more information on configuration options and callback types, see [the type definitions](src/types.ts) and our [Query API documentation](https://docs.vectara.com/docs/api-reference/search-apis/stream-query).
+For more information on configuration options and callback types, see [the type definitions](src/apiV2/types.ts) and our [Query API documentation](https://docs.vectara.com/docs/rest-api/query).
 
 ## License
 

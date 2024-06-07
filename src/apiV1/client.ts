@@ -6,11 +6,12 @@ import {
   StreamUpdateHandler,
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
+import { processStreamChunk } from "./processStreamChunk";
 import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "./constants";
+import { DEFAULT_DOMAIN } from "../common/constants";
+import { generateStream } from "../common/generateStream";
 
-const DEFAULT_ENDPOINT = "api.vectara.io";
-
-export const streamQuery = async (
+export const streamQueryV1 = async (
   config: StreamQueryConfig,
   onStreamUpdate: StreamUpdateHandler
 ) => {
@@ -90,53 +91,47 @@ export const streamQuery = async (
     ],
   });
 
-  const stream = await generateStream(
-    requestHeaders,
-    requestBody,
-    config.endpoint ?? DEFAULT_ENDPOINT
-  );
+  const url = config.endpoint ?? `${DEFAULT_DOMAIN}/v1/stream-query`;
+
+  const { stream } = await generateStream(requestHeaders, requestBody, url);
 
   let previousAnswerText = "";
 
   for await (const chunk of stream) {
     try {
-      const parts = chunk.split("\n");
+      processStreamChunk(chunk, (part) => {
+        const dataObj = JSON.parse(part);
 
-      parts
-        .filter((part) => part !== "")
-        .forEach((part) => {
-          const dataObj = JSON.parse(part);
+        if (!dataObj.result) return;
 
-          if (!dataObj.result) return;
+        const details: StreamUpdate["details"] = {};
 
-          const details: StreamUpdate["details"] = {};
+        const summaryDetail = getSummaryDetail(config, dataObj.result);
+        if (summaryDetail) {
+          details.summary = summaryDetail;
+        }
 
-          const summaryDetail = getSummaryDetail(config, dataObj.result);
-          if (summaryDetail) {
-            details.summary = summaryDetail;
-          }
+        const chatDetail = getChatDetail(config, dataObj.result);
+        if (chatDetail) {
+          details.chat = chatDetail;
+        }
 
-          const chatDetail = getChatDetail(config, dataObj.result);
-          if (chatDetail) {
-            details.chat = chatDetail;
-          }
+        const fcsDetail = getFactualConsistencyDetail(dataObj.result);
+        if (fcsDetail) {
+          details.factualConsistency = fcsDetail;
+        }
 
-          const fcsDetail = getFactualConsistencyDetail(dataObj.result);
-          if (fcsDetail) {
-            details.factualConsistency = fcsDetail;
-          }
+        const streamUpdate: StreamUpdate = {
+          references: deserializeSearchResponse(dataObj.result.responseSet),
+          details,
+          updatedText: getUpdatedText(dataObj.result, previousAnswerText),
+          isDone: dataObj.result.summary?.done ?? false,
+        };
 
-          const streamUpdate: StreamUpdate = {
-            references: deserializeSearchResponse(dataObj.result.responseSet),
-            details,
-            updatedText: getUpdatedText(dataObj.result, previousAnswerText),
-            isDone: dataObj.result.summary?.done ?? false,
-          };
+        previousAnswerText = streamUpdate.updatedText ?? "";
 
-          previousAnswerText = streamUpdate.updatedText ?? "";
-
-          onStreamUpdate(streamUpdate);
-        });
+        onStreamUpdate(streamUpdate);
+      });
     } catch (error) {}
   }
 };
@@ -185,34 +180,3 @@ const getUpdatedText = (parsedResult: ParsedResult, previousText: string) => {
 
   return `${previousText}${parsedResult.summary.text}`;
 };
-
-const generateStream = async (
-  requestHeaders: Record<string, string>,
-  requestBody: string,
-  endpoint: string
-): Promise<AsyncIterable<string>> => {
-  const response = await fetch(`https://${endpoint}/v1/stream-query`, {
-    method: "POST",
-    headers: requestHeaders,
-    body: requestBody,
-  });
-  if (response.status !== 200) throw new Error(response.status.toString());
-  if (!response.body) throw new Error("Response body does not exist");
-  return getIterableStream(response.body);
-};
-
-async function* getIterableStream(
-  body: ReadableStream<Uint8Array>
-): AsyncIterable<string> {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-
-  while (true) {
-    const { value, done } = await reader.read();
-    if (done) {
-      break;
-    }
-    const decodedChunk = decoder.decode(value, { stream: true });
-    yield decodedChunk;
-  }
-}

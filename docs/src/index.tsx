@@ -1,68 +1,152 @@
 import { useState } from "react";
 import ReactDOM from "react-dom";
 import {
-  streamQuery,
-  StreamUpdate,
-  StreamQueryConfig,
+  streamQueryV1,
+  ApiV1,
+  streamQueryV2,
+  ApiV2,
 } from "@vectara/stream-query-client";
 
-const App = () => {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<string>();
-  const [conversationId, setConversationId] = useState<string>();
+// TODO: Switch back to prod values before merging
+const CUSTOMER_ID = "3099635174";
+const API_KEY = "zqt_uMCt5uGR7CXARu7QHg7GDYNG5Q5v58HOpvQO0A";
+const CORPUS_NAME = "markdown";
+const CORPUS_ID = "203";
 
-  const sendQuery = async () => {
-    const configurationOptions: StreamQueryConfig = {
+// const CUSTOMER_ID = "1526022105";
+// const API_KEY = "zqt_WvU_2ewh7ZGRwq8LdL2SV8B9RJmVGyUm1VAuOw";
+// const CORPUS_NAME = "ofer-bm-moma-docs";
+// const CORPUS_ID = "232";
+
+const App = () => {
+  const [question, setQuestion] = useState("markdown");
+  const [answerV1, setAnswerV1] = useState<string>();
+  const [resultsV1, setResultsV1] = useState<string>();
+  const [answerV2, setAnswerV2] = useState<string>();
+  const [resultsV2, setResultsV2] = useState<string>();
+  const [conversationIdV1, setConversationIdV1] = useState<string>();
+  const [conversationIdV2, setConversationIdV2] = useState<string>();
+
+  const sendQueryV1 = async () => {
+    const configurationOptions: ApiV1.StreamQueryConfig = {
       // Required fields.
-      customerId: "1366999410",
-      corpusIds: ["1"],
-      apiKey: "zqt_UXrBcnI2UXINZkrv4g1tQPhzj02vfdtqYJIDiA",
+      customerId: CUSTOMER_ID,
+      corpusIds: [CORPUS_ID],
+      apiKey: API_KEY,
 
       // Optional fields.
       queryValue: question,
-      summaryNumResults: 5,
+      summaryNumResults: 2,
       language: "eng",
       chat: {
         store: true,
-        conversationId,
+        conversationId: conversationIdV1,
       },
       debug: true,
       enableFactualConsistencyScore: true,
       summaryPromptName: "vectara-experimental-summary-ext-2023-12-11-large",
     };
 
-    const onStreamUpdate = (update: StreamUpdate) => {
-      console.log(update);
-      const { updatedText, details } = update;
-      if (details.chat) {
-        setConversationId(details.chat.conversationId);
+    const onStreamUpdate = (update: ApiV1.StreamUpdate) => {
+      // console.log("v1", update);
+      const { updatedText, details, references } = update;
+
+      if (details?.chat) {
+        setConversationIdV1(details.chat.conversationId);
       }
-      setAnswer(updatedText);
+
+      setAnswerV1(updatedText);
+
+      if (references) {
+        setResultsV1(JSON.stringify(references));
+      }
     };
 
-    streamQuery(configurationOptions, onStreamUpdate);
+    streamQueryV1(configurationOptions, onStreamUpdate);
+  };
+
+  const sendQueryV2 = async () => {
+    const configurationOptions: ApiV2.StreamQueryConfig = {
+      customerId: CUSTOMER_ID,
+      apiKey: API_KEY,
+      query: question,
+      corpusKey: `${CORPUS_NAME}_${CORPUS_ID}`,
+      search: {
+        offset: 0,
+        metadataFilter: "",
+        limit: 2,
+        lexicalInterpolation: 0,
+        contextConfiguration: {
+          sentencesBefore: 2,
+          sentencesAfter: 2,
+        },
+      },
+      generation: {
+        maxUsedSearchResults: 5,
+        responseLanguage: "eng",
+        enableFactualConsistencyScore: true,
+        promptName: "vectara-experimental-summary-ext-2023-12-11-large",
+      },
+      chat: {
+        store: true,
+        conversationId: conversationIdV2,
+      },
+    };
+
+    const onStreamEvent = (event: ApiV2.StreamEvent) => {
+      const { updatedText, chatId, searchResults } = event;
+      if (chatId) {
+        setConversationIdV2(chatId);
+      }
+
+      if (updatedText) {
+        setAnswerV2(updatedText);
+      }
+
+      if (searchResults) {
+        setResultsV2(JSON.stringify(searchResults));
+      }
+
+      if (event.type === "error") {
+        console.log("Error", event.messages);
+      }
+    };
+
+    streamQueryV2(configurationOptions, onStreamEvent);
   };
 
   return (
     <>
-      <h1>Stream Query Client</h1>
-
       <h2>Question</h2>
 
       <input value={question} onChange={(e) => setQuestion(e.target.value)} />
 
       <button
         onClick={() => {
-          setAnswer("");
-          sendQuery();
+          setAnswerV1("");
+          setResultsV1("");
+          setAnswerV2("");
+          setResultsV2("");
+          sendQueryV1();
+          sendQueryV2();
         }}
       >
         Send
       </button>
 
-      <h2>Answer</h2>
+      <div style={{ display: "flex" }}>
+        <div style={{ flexGrow: "1", flexShrink: "1", width: "50%" }}>
+          <h2>Stream Query Client v1 answer</h2>
+          <p>{resultsV1}</p>
+          <p>{answerV1}</p>
+        </div>
 
-      <p>{answer}</p>
+        <div style={{ flexGrow: "1", flexShrink: "1", width: "50%" }}>
+          <h2>Stream Query Client v2 answer</h2>
+          <p>{resultsV2}</p>
+          <p>{answerV2}</p>
+        </div>
+      </div>
     </>
   );
 };

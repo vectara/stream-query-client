@@ -1,15 +1,14 @@
 import { setupServer } from "msw/node";
 import { http } from "msw";
+import { DEFAULT_DOMAIN } from "./constants";
 
-const encoder = new TextEncoder();
-
-const createChunk = (json: any) => {
-  return encoder.encode(JSON.stringify(json));
-};
-
-export const createStreamingServer = (chunks: any[]) => {
+export const createTestStreamingServer = (
+  path: string,
+  chunks: any[],
+  createChunk: (value: any) => any
+) => {
   return setupServer(
-    http.post("https://api.vectara.io/v1/stream-query", () => {
+    http.post(`${DEFAULT_DOMAIN}${path}`, () => {
       const stream = new ReadableStream({
         start(controller) {
           chunks.forEach((chunk) => {

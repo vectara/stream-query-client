@@ -1,13 +1,22 @@
 import { SetupServerApi } from "msw/node";
-import { streamQuery, StreamUpdate, StreamQueryConfig } from "./index";
-import { createStreamingServer } from "./createStreamingServer";
-import { chunks } from "./index.mocks";
+import { streamQueryV1 } from "./client";
+import { StreamQueryConfig, StreamUpdate } from "./types";
+import { createTestStreamingServer } from "../common/createTestStreamingServer";
+import { chunks } from "./client.mocks";
 
-describe("stream-query-client", () => {
+const encoder = new TextEncoder();
+
+describe("stream-query-client API v1", () => {
   let server: SetupServerApi;
 
   beforeAll(async () => {
-    server = createStreamingServer(chunks);
+    server = createTestStreamingServer(
+      "/v1/stream-query",
+      chunks,
+      (json: any) => {
+        return encoder.encode(JSON.stringify(json));
+      }
+    );
     await server.listen();
   });
 
@@ -44,7 +53,7 @@ describe("stream-query-client", () => {
       handleUpdate(update);
     };
 
-    await streamQuery(configurationOptions, onStreamUpdate);
+    await streamQueryV1(configurationOptions, onStreamUpdate);
 
     expect(handleUpdate).toHaveBeenNthCalledWith(1, {
       references: [
