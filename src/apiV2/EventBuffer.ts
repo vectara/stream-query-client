@@ -85,6 +85,12 @@ export class EventBuffer {
         });
         break;
 
+      case "generation_end":
+        this.events.push({
+          type: "generationEnd",
+        });
+        break;
+
       case "factual_consistency_score":
         this.events.push({
           type: "factualConsistencyScore",

@@ -1,5 +1,7 @@
 import { SummaryLanguage } from "../common/types";
-import { SearchResult } from "./apiTypes";
+import { Query } from "./apiTypes";
+
+export type { Query } from "./apiTypes";
 
 export type GenerationConfig = {
   // The preferred prompt to use, if applicable
@@ -34,11 +36,15 @@ export type StreamQueryConfig = {
   customerId: string;
 
   // The Vectara query API key that has access to the corpora you're querying.
-  apiKey: string;
+  apiKey?: string;
 
-  // An optional endpoint to send the query to.
-  // Used if proxying the Vectara API URL behind a custom server.
-  endpoint?: string;
+  // Alternatively specify the JWT token to use for authentication.
+  authToken?: string;
+
+  // An optional domain to send the query to. Useful for proxying API requests.
+  // Expects specific endpoints to be available at <domain>/v2/query,
+  // <domain>/v2/chats/:chatId/turns, and <domain>/v2/chats
+  domain?: string;
 
   // The query to send to the API. This is the user input.
   query: string;
@@ -89,37 +95,23 @@ export type StreamQueryConfig = {
   };
 };
 
-export type Summary = {
-  prompt?: string;
-};
-
-export type Chat = {
-  conversationId: string;
-  turnId: string;
-  // Debug-only
-  rephrasedQuery?: string;
-};
-
-export type FactualConsistency = {
-  score: number;
-};
-
 export type StreamEvent =
   | ErrorEvent
   | SearchResultsEvent
   | ChatInfoEvent
   | GenerationChunkEvent
+  | GenerationEndEvent
   | FactualConsistencyScoreEvent
   | EndEvent;
 
 export type ErrorEvent = {
   type: "error";
-  messages?: string[];
+  messages: string[];
 };
 
 export type SearchResultsEvent = {
   type: "searchResults";
-  searchResults: SearchResult[];
+  searchResults: Query.SearchResult[];
 };
 
 export type ChatInfoEvent = {
@@ -134,6 +126,10 @@ export type GenerationChunkEvent = {
   generationChunk: string;
 };
 
+export type GenerationEndEvent = {
+  type: "generationEnd";
+};
+
 export type FactualConsistencyScoreEvent = {
   type: "factualConsistencyScore";
   factualConsistencyScore: number;
@@ -144,8 +140,3 @@ export type EndEvent = {
 };
 
 export type StreamEventHandler = (event: StreamEvent) => void;
-
-export type DocMetadata = {
-  name: string;
-  value: string;
-};

@@ -3,7 +3,7 @@ import {
   StreamQueryConfig,
   StreamEventHandler,
 } from "./types";
-import { QueryBody } from "./apiTypes";
+import { Query } from "./apiTypes";
 import { DEFAULT_DOMAIN } from "../common/constants";
 import { generateStream } from "../common/generateStream";
 import { EventBuffer } from "./EventBuffer";
@@ -53,7 +53,8 @@ export const streamQueryV2 = async (
   const {
     customerId,
     apiKey,
-    endpoint,
+    authToken,
+    domain,
     corpusKey,
     query,
     search: {
@@ -78,7 +79,7 @@ export const streamQueryV2 = async (
     chat,
   } = config;
 
-  let body: QueryBody = {
+  let body: Query.Body = {
     query,
     search: {
       corpora: [
@@ -134,13 +135,15 @@ export const streamQueryV2 = async (
     }
   }
 
-  const headers = {
-    "x-api-key": apiKey,
+  const headers: any = {
     "customer-id": customerId,
     "Content-Type": "application/json",
   };
 
-  const url = `${endpoint ?? DEFAULT_DOMAIN}${path}`;
+  if (apiKey) headers["x-api-key"] = apiKey;
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+
+  const url = `${domain ?? DEFAULT_DOMAIN}${path}`;
 
   try {
     const { cancelStream, stream } = await generateStream(
