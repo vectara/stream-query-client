@@ -64,10 +64,10 @@ export type StreamQueryConfig = {
     contextConfiguration?: {
       charactersBefore?: number;
       charactersAfter?: number;
-      // For summary references, this is the number of sentences to include before/after
+      // For summary references, this is the number of sentences to include before
       // relevant reference snippets.
       sentencesBefore?: number;
-      // For summary references, this is the number of sentences to include before/after
+      // For summary references, this is the number of sentences to include after
       // relevant reference snippets.
       sentencesAfter?: number;
       startTag?: string;
