@@ -61,7 +61,7 @@ const App = () => {
   };
 
   const sendQueryV2 = async () => {
-    const configurationOptions: ApiV2.StreamQueryConfig = {
+    const streamQueryConfig: ApiV2.StreamQueryConfig = {
       customerId: CUSTOMER_ID,
       apiKey: API_KEY,
       query: question,
@@ -89,28 +89,33 @@ const App = () => {
     };
 
     const onStreamEvent = (event: ApiV2.StreamEvent) => {
-      const { updatedText, chatId, searchResults } = event;
-      if (chatId) {
-        setConversationIdV2(chatId);
-      }
+      switch (event.type) {
+        case "chatInfo":
+          setConversationIdV2(event.chatId);
+          break;
 
-      if (updatedText) {
-        setAnswerV2(updatedText);
-      }
+        case "searchResults":
+          setResultsV2(JSON.stringify(event.searchResults));
+          break;
 
-      if (searchResults) {
-        setResultsV2(JSON.stringify(searchResults));
-      }
+        case "generationChunk":
+          setAnswerV2(event.updatedText);
+          break;
 
-      if (event.type === "error") {
-        console.log("Error", event.messages);
+        case "error":
+        case "requestError":
+        case "unexpectedError":
+          console.log("Error", event);
       }
     };
 
-    const queryStream = await streamQueryV2(
-      configurationOptions,
-      onStreamEvent
-    );
+    const queryStream = await streamQueryV2({
+      streamQueryConfig,
+      onStreamEvent,
+      onError: (error) => {
+        console.error("Error", error);
+      },
+    });
 
     cancelStream.current = queryStream?.cancelStream ?? null;
   };
