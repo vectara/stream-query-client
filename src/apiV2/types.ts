@@ -119,6 +119,7 @@ export type StreamEvent =
   | EndEvent
   | UnexpectedEvent
   | RequestErrorEvent
+  | GenericErrorEvent
   | UnexpectedErrorEvent;
 
 type BaseEvent = {
@@ -170,6 +171,11 @@ export type RequestErrorEvent = {
   type: "requestError";
   status: number;
   raw: any;
+};
+
+export type GenericErrorEvent = {
+  type: "genericError";
+  error: Error;
 };
 
 export type UnexpectedErrorEvent = {

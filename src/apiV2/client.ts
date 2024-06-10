@@ -51,12 +51,10 @@ const convertCitations = (citations?: GenerationConfig["citations"]) => {
 export const streamQueryV2 = async ({
   streamQueryConfig,
   onStreamEvent,
-  onError,
   includeRawEvents = false,
 }: {
   streamQueryConfig: StreamQueryConfig;
   onStreamEvent: StreamEventHandler;
-  onError?: (error: Error) => void;
   includeRawEvents?: boolean;
 }) => {
   const {
@@ -177,9 +175,12 @@ export const streamQueryV2 = async ({
             buffer.consumeChunk(chunk);
           } catch (error) {
             if (error instanceof Error) {
-              onError?.(error);
+              onStreamEvent({
+                type: "genericError",
+                error,
+              });
             } else {
-              console.log("error", error);
+              throw error;
             }
           }
         }
@@ -188,9 +189,12 @@ export const streamQueryV2 = async ({
           // Swallow the "DOMException: BodyStreamBuffer was aborted" error
           // triggered by cancelling a stream.
         } else if (error instanceof Error) {
-          onError?.(error);
+          onStreamEvent({
+            type: "genericError",
+            error,
+          });
         } else {
-          console.log("error", error);
+          throw error;
         }
       }
     };
@@ -200,9 +204,12 @@ export const streamQueryV2 = async ({
     return { cancelStream, request, status };
   } catch (error) {
     if (error instanceof Error) {
-      onError?.(error);
+      onStreamEvent({
+        type: "genericError",
+        error,
+      });
     } else {
-      console.log("error", error);
+      throw error;
     }
   }
 
