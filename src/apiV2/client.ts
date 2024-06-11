@@ -74,15 +74,7 @@ export const streamQueryV2 = async ({
       contextConfiguration,
       reranker,
     },
-    generation: {
-      promptName,
-      maxUsedSearchResults,
-      promptText,
-      maxResponseCharacters,
-      responseLanguage,
-      modelParameters,
-      citations,
-    } = {},
+    generation,
     chat,
   } = streamQueryConfig;
 
@@ -110,7 +102,21 @@ export const streamQueryV2 = async ({
       },
       reranker: convertReranker(reranker),
     },
-    generation: {
+    stream_response: true,
+  };
+
+  if (generation) {
+    const {
+      promptName,
+      maxUsedSearchResults,
+      promptText,
+      maxResponseCharacters,
+      responseLanguage,
+      modelParameters,
+      citations,
+    } = generation;
+
+    body.generation = {
       prompt_name: promptName,
       max_used_search_results: maxUsedSearchResults,
       prompt_text: promptText,
@@ -123,12 +129,14 @@ export const streamQueryV2 = async ({
         presence_penalty: modelParameters.presencePenalty,
       },
       citations: convertCitations(citations),
-    },
-    chat: chat && {
+    };
+  }
+
+  if (chat) {
+    body.chat = {
       store: chat.store,
-    },
-    stream_response: true,
-  };
+    };
+  }
 
   let path;
 
