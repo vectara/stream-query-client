@@ -114,6 +114,7 @@ export const streamQueryV2 = async ({
       responseLanguage,
       modelParameters,
       citations,
+      enableFactualConsistencyScore,
     } = generation;
 
     body.generation = {
@@ -129,6 +130,7 @@ export const streamQueryV2 = async ({
         presence_penalty: modelParameters.presencePenalty,
       },
       citations: convertCitations(citations),
+      enable_factual_consistency_score: enableFactualConsistencyScore,
     };
   }
 
