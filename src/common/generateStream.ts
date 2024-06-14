@@ -3,7 +3,7 @@ export const generateStream = async (
   body: string,
   url: string
 ) => {
-  let controller = new AbortController();
+  const controller = new AbortController();
 
   const response = await fetch(url, {
     method: "POST",
@@ -12,12 +12,12 @@ export const generateStream = async (
     signal: controller.signal,
   });
 
-  if (response.status !== 200) throw new Error(response.status.toString());
   if (!response.body) throw new Error("Response body does not exist");
 
   return {
     stream: getIterableStream(response.body),
     cancelStream: () => controller.abort(),
+    status: response.status,
   };
 };
 

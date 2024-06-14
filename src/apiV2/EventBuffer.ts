@@ -1,14 +1,22 @@
 import { StreamEvent } from "./types";
 
 export class EventBuffer {
-  private events: StreamEvent[];
   private onStreamEvent: (event: StreamEvent) => void;
-  private eventInProgress: string = "";
-  private updatedText: string = "";
+  private includeRaw: boolean;
+  private status: number;
+  private events: StreamEvent[];
+  private eventInProgress = "";
+  private updatedText = "";
 
-  constructor(onStreamEvent: (event: any) => void) {
+  constructor(
+    onStreamEvent: (event: any) => void,
+    includeRaw = false,
+    status = 200
+  ) {
     this.events = [];
     this.onStreamEvent = onStreamEvent;
+    this.includeRaw = includeRaw;
+    this.status = status;
   }
 
   consumeChunk(chunk: string) {
@@ -36,7 +44,9 @@ export class EventBuffer {
         const rawEvent = JSON.parse(this.eventInProgress);
         this.enqueueEvent(rawEvent);
         this.eventInProgress = "";
-      } catch {}
+      } catch {
+        // @tes-expect-error no-empty
+      }
     });
 
     this.drainEvents();
@@ -58,6 +68,7 @@ export class EventBuffer {
         this.events.push({
           type: "error",
           messages,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
@@ -65,6 +76,7 @@ export class EventBuffer {
         this.events.push({
           type: "searchResults",
           searchResults: search_results,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
@@ -73,6 +85,7 @@ export class EventBuffer {
           type: "chatInfo",
           chatId: chat_id,
           turnId: turn_id,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
@@ -82,6 +95,14 @@ export class EventBuffer {
           type: "generationChunk",
           updatedText: this.updatedText,
           generationChunk: generation_chunk,
+          ...(this.includeRaw && { raw: rawEvent }),
+        });
+        break;
+
+      case "generation_end":
+        this.events.push({
+          type: "generationEnd",
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
@@ -89,17 +110,38 @@ export class EventBuffer {
         this.events.push({
           type: "factualConsistencyScore",
           factualConsistencyScore: factual_consistency_score,
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
       case "end":
         this.events.push({
           type: "end",
+          ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
 
       default:
-        console.log(`Unhandled event: ${type}`, rawEvent);
+        if (type) {
+          this.events.push({
+            type: "unexpectedEvent",
+            rawType: type,
+            raw: rawEvent,
+          });
+        } else if (this.status !== 200) {
+          // Assume an error.
+          this.events.push({
+            type: "requestError",
+            status: this.status,
+            raw: rawEvent,
+          });
+        } else {
+          // Assume an error.
+          this.events.push({
+            type: "unexpectedError",
+            raw: rawEvent,
+          });
+        }
     }
   }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import {
   streamQueryV1,
@@ -20,6 +20,7 @@ const App = () => {
   const [resultsV2, setResultsV2] = useState<string>();
   const [conversationIdV1, setConversationIdV1] = useState<string>();
   const [conversationIdV2, setConversationIdV2] = useState<string>();
+  const cancelStream = useRef<(() => void) | null>(null);
 
   const sendQueryV1 = async () => {
     const configurationOptions: ApiV1.StreamQueryConfig = {
@@ -60,7 +61,7 @@ const App = () => {
   };
 
   const sendQueryV2 = async () => {
-    const configurationOptions: ApiV2.StreamQueryConfig = {
+    const streamQueryConfig: ApiV2.StreamQueryConfig = {
       customerId: CUSTOMER_ID,
       apiKey: API_KEY,
       query: question,
@@ -88,25 +89,35 @@ const App = () => {
     };
 
     const onStreamEvent = (event: ApiV2.StreamEvent) => {
-      const { updatedText, chatId, searchResults } = event;
-      if (chatId) {
-        setConversationIdV2(chatId);
-      }
+      switch (event.type) {
+        case "chatInfo":
+          setConversationIdV2(event.chatId);
+          break;
 
-      if (updatedText) {
-        setAnswerV2(updatedText);
-      }
+        case "searchResults":
+          setResultsV2(JSON.stringify(event.searchResults));
+          break;
 
-      if (searchResults) {
-        setResultsV2(JSON.stringify(searchResults));
-      }
+        case "generationChunk":
+          setAnswerV2(event.updatedText);
+          break;
 
-      if (event.type === "error") {
-        console.log("Error", event.messages);
+        case "error":
+        case "requestError":
+        case "unexpectedError":
+          console.log("Error", event);
       }
     };
 
-    streamQueryV2(configurationOptions, onStreamEvent);
+    const queryStream = await streamQueryV2({
+      streamQueryConfig,
+      onStreamEvent,
+      onError: (error) => {
+        console.error("Error", error);
+      },
+    });
+
+    cancelStream.current = queryStream?.cancelStream ?? null;
   };
 
   return (
@@ -127,6 +138,8 @@ const App = () => {
       >
         Send
       </button>
+
+      <button onClick={() => cancelStream.current?.()}>Cancel</button>
 
       <div style={{ display: "flex" }}>
         <div style={{ flexGrow: "1", flexShrink: "1", width: "50%" }}>

@@ -69,4 +69,36 @@ data:{"type":"end"}
 
     expect(onStreamEvent).toHaveBeenNthCalledWith(2, { type: "end" });
   });
+
+  test("handles unexpected errors", () => {
+    const onStreamEvent = jest.fn();
+    const buffer = new EventBuffer(onStreamEvent);
+
+    buffer.consumeChunk(`
+    {"messages":["Request failed. See https://status.vectara.com for the latest info on any outages. If the problem persists, please contact us via support or via our community forums at https://discuss.vectara.com if you’re a Growth user."],"request_id":"00000000000000000000000000000000"}
+    `);
+
+    expect(onStreamEvent).toHaveBeenCalledWith({
+      type: "unexpectedError",
+      raw: `
+      {"messages":["Request failed. See https://status.vectara.com for the latest info on any outages. If the problem persists, please contact us via support or via our community forums at https://discuss.vectara.com if you’re a Growth user."],"request_id":"00000000000000000000000000000000"}
+      `,
+    });
+  });
+
+  test("handles unexpected events", () => {
+    const onStreamEvent = jest.fn();
+    const buffer = new EventBuffer(onStreamEvent);
+
+    buffer.consumeChunk(`
+event:meteor_strike
+data:{"type":"apocalypse"}
+    `);
+
+    expect(onStreamEvent).toHaveBeenCalledWith({
+      type: "unexpectedEvent",
+      rawType: "meteor_strike",
+      raw: { type: "apocalypse" },
+    });
+  });
 });

@@ -2,8 +2,10 @@ import {
   GenerationConfig,
   StreamQueryConfig,
   StreamEventHandler,
+  StreamQueryRequest,
+  StreamQueryRequestHeaders,
 } from "./types";
-import { QueryBody } from "./apiTypes";
+import { Query } from "./apiTypes";
 import { DEFAULT_DOMAIN } from "../common/constants";
 import { generateStream } from "../common/generateStream";
 import { EventBuffer } from "./EventBuffer";
@@ -46,14 +48,20 @@ const convertCitations = (citations?: GenerationConfig["citations"]) => {
   }
 };
 
-export const streamQueryV2 = async (
-  config: StreamQueryConfig,
-  onStreamEvent: StreamEventHandler
-) => {
+export const streamQueryV2 = async ({
+  streamQueryConfig,
+  onStreamEvent,
+  includeRawEvents = false,
+}: {
+  streamQueryConfig: StreamQueryConfig;
+  onStreamEvent: StreamEventHandler;
+  includeRawEvents?: boolean;
+}) => {
   const {
     customerId,
     apiKey,
-    endpoint,
+    authToken,
+    domain,
     corpusKey,
     query,
     search: {
@@ -66,19 +74,11 @@ export const streamQueryV2 = async (
       contextConfiguration,
       reranker,
     },
-    generation: {
-      promptName,
-      maxUsedSearchResults,
-      promptText,
-      maxResponseCharacters,
-      responseLanguage,
-      modelParameters,
-      citations,
-    } = {},
+    generation,
     chat,
-  } = config;
+  } = streamQueryConfig;
 
-  let body: QueryBody = {
+  const body: Query.Body = {
     query,
     search: {
       corpora: [
@@ -102,7 +102,22 @@ export const streamQueryV2 = async (
       },
       reranker: convertReranker(reranker),
     },
-    generation: {
+    stream_response: true,
+  };
+
+  if (generation) {
+    const {
+      promptName,
+      maxUsedSearchResults,
+      promptText,
+      maxResponseCharacters,
+      responseLanguage,
+      modelParameters,
+      citations,
+      enableFactualConsistencyScore,
+    } = generation;
+
+    body.generation = {
       prompt_name: promptName,
       max_used_search_results: maxUsedSearchResults,
       prompt_text: promptText,
@@ -115,12 +130,15 @@ export const streamQueryV2 = async (
         presence_penalty: modelParameters.presencePenalty,
       },
       citations: convertCitations(citations),
-    },
-    chat: chat && {
+      enable_factual_consistency_score: enableFactualConsistencyScore,
+    };
+  }
+
+  if (chat) {
+    body.chat = {
       store: chat.store,
-    },
-    stream_response: true,
-  };
+    };
+  }
 
   let path;
 
@@ -134,41 +152,76 @@ export const streamQueryV2 = async (
     }
   }
 
-  const headers = {
-    "x-api-key": apiKey,
+  const headers: StreamQueryRequestHeaders = {
     "customer-id": customerId,
     "Content-Type": "application/json",
   };
 
-  const url = `${endpoint ?? DEFAULT_DOMAIN}${path}`;
+  if (apiKey) headers["x-api-key"] = apiKey;
+  if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+
+  const url = `${domain ?? DEFAULT_DOMAIN}${path}`;
+
+  const request: StreamQueryRequest = {
+    method: "POST",
+    url,
+    headers,
+    body,
+  };
 
   try {
-    const { cancelStream, stream } = await generateStream(
+    const { cancelStream, stream, status } = await generateStream(
       headers,
       JSON.stringify(body),
       url
     );
 
-    new Promise(async (resolve, reject) => {
+    const consumeStream = async () => {
       try {
-        const buffer = new EventBuffer(onStreamEvent);
+        const buffer = new EventBuffer(onStreamEvent, includeRawEvents, status);
 
         for await (const chunk of stream) {
           try {
             buffer.consumeChunk(chunk);
           } catch (error) {
-            console.log("error", error);
+            if (error instanceof Error) {
+              onStreamEvent({
+                type: "genericError",
+                error,
+              });
+            } else {
+              throw error;
+            }
           }
         }
-
-        resolve(undefined);
       } catch (error) {
-        reject(error);
+        if (error instanceof DOMException && error.name == "AbortError") {
+          // Swallow the "DOMException: BodyStreamBuffer was aborted" error
+          // triggered by cancelling a stream.
+        } else if (error instanceof Error) {
+          onStreamEvent({
+            type: "genericError",
+            error,
+          });
+        } else {
+          throw error;
+        }
       }
-    });
+    };
 
-    return { cancelStream };
+    consumeStream();
+
+    return { cancelStream, request, status };
   } catch (error) {
-    console.log("error", error);
+    if (error instanceof Error) {
+      onStreamEvent({
+        type: "genericError",
+        error,
+      });
+    } else {
+      throw error;
+    }
   }
+
+  return { request };
 };

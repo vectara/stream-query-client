@@ -132,7 +132,9 @@ export const streamQueryV1 = async (
 
         onStreamUpdate(streamUpdate);
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 };
 

@@ -1,5 +1,7 @@
 import { SummaryLanguage } from "../common/types";
-import { SearchResult } from "./apiTypes";
+import { Query } from "./apiTypes";
+
+export type { Query } from "./apiTypes";
 
 export type GenerationConfig = {
   // The preferred prompt to use, if applicable
@@ -34,11 +36,15 @@ export type StreamQueryConfig = {
   customerId: string;
 
   // The Vectara query API key that has access to the corpora you're querying.
-  apiKey: string;
+  apiKey?: string;
 
-  // An optional endpoint to send the query to.
-  // Used if proxying the Vectara API URL behind a custom server.
-  endpoint?: string;
+  // Alternatively specify the JWT token to use for authentication.
+  authToken?: string;
+
+  // An optional domain to send the query to. Useful for proxying API requests.
+  // Expects specific endpoints to be available at <domain>/v2/query,
+  // <domain>/v2/chats/:chatId/turns, and <domain>/v2/chats
+  domain?: string;
 
   // The query to send to the API. This is the user input.
   query: string;
@@ -58,10 +64,10 @@ export type StreamQueryConfig = {
     contextConfiguration?: {
       charactersBefore?: number;
       charactersAfter?: number;
-      // For summary references, this is the number of sentences to include before/after
+      // For summary references, this is the number of sentences to include before
       // relevant reference snippets.
       sentencesBefore?: number;
-      // For summary references, this is the number of sentences to include before/after
+      // For summary references, this is the number of sentences to include after
       // relevant reference snippets.
       sentencesAfter?: number;
       startTag?: string;
@@ -89,19 +95,18 @@ export type StreamQueryConfig = {
   };
 };
 
-export type Summary = {
-  prompt?: string;
+export type StreamQueryRequestHeaders = {
+  ["customer-id"]: string;
+  ["Content-Type"]: string;
+  ["x-api-key"]?: string;
+  ["Authorization"]?: string;
 };
 
-export type Chat = {
-  conversationId: string;
-  turnId: string;
-  // Debug-only
-  rephrasedQuery?: string;
-};
-
-export type FactualConsistency = {
-  score: number;
+export type StreamQueryRequest = {
+  method: string;
+  url: string;
+  headers: StreamQueryRequestHeaders;
+  body: Query.Body;
 };
 
 export type StreamEvent =
@@ -109,43 +114,73 @@ export type StreamEvent =
   | SearchResultsEvent
   | ChatInfoEvent
   | GenerationChunkEvent
+  | GenerationEndEvent
   | FactualConsistencyScoreEvent
-  | EndEvent;
+  | EndEvent
+  | UnexpectedEvent
+  | RequestErrorEvent
+  | GenericErrorEvent
+  | UnexpectedErrorEvent;
 
-export type ErrorEvent = {
+type BaseEvent = {
+  raw?: any;
+};
+
+export type ErrorEvent = BaseEvent & {
   type: "error";
-  messages?: string[];
+  messages: string[];
 };
 
-export type SearchResultsEvent = {
+export type SearchResultsEvent = BaseEvent & {
   type: "searchResults";
-  searchResults: SearchResult[];
+  searchResults: Query.SearchResult[];
 };
 
-export type ChatInfoEvent = {
+export type ChatInfoEvent = BaseEvent & {
   type: "chatInfo";
   chatId: string;
   turnId: string;
 };
 
-export type GenerationChunkEvent = {
+export type GenerationChunkEvent = BaseEvent & {
   type: "generationChunk";
   updatedText: string;
   generationChunk: string;
 };
 
-export type FactualConsistencyScoreEvent = {
+export type GenerationEndEvent = BaseEvent & {
+  type: "generationEnd";
+};
+
+export type FactualConsistencyScoreEvent = BaseEvent & {
   type: "factualConsistencyScore";
   factualConsistencyScore: number;
 };
 
-export type EndEvent = {
+export type EndEvent = BaseEvent & {
   type: "end";
 };
 
-export type StreamEventHandler = (event: StreamEvent) => void;
-
-export type DocMetadata = {
-  name: string;
-  value: string;
+export type UnexpectedEvent = {
+  type: "unexpectedEvent";
+  rawType: string;
+  raw: any;
 };
+
+export type RequestErrorEvent = {
+  type: "requestError";
+  status: number;
+  raw: any;
+};
+
+export type GenericErrorEvent = {
+  type: "genericError";
+  error: Error;
+};
+
+export type UnexpectedErrorEvent = {
+  type: "unexpectedError";
+  raw: any;
+};
+
+export type StreamEventHandler = (event: StreamEvent) => void;
