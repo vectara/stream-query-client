@@ -18,6 +18,7 @@ export const generateStream = async (
     stream: getIterableStream(response.body),
     cancelStream: () => controller.abort(),
     status: response.status,
+    responseHeaders: response.headers,
   };
 };
 
