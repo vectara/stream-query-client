@@ -1,6 +1,8 @@
 import { SummaryLanguage } from "../common/types";
 
 export namespace Query {
+  export type NoneReranker = "none";
+
   export type CustomerSpecificReranker = {
     type: "customer_reranker";
     reranker_id: string;
@@ -29,7 +31,7 @@ export namespace Query {
       start_tag?: string;
       end_tag?: string;
     };
-    reranker?: CustomerSpecificReranker | MmrReranker;
+    reranker?: NoneReranker | CustomerSpecificReranker | MmrReranker;
   };
 
   export type NoneCitations = {

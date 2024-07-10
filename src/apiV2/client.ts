@@ -14,6 +14,7 @@ const convertReranker = (
   reranker?: StreamQueryConfig["search"]["reranker"]
 ) => {
   if (!reranker) return;
+  if (reranker === "none") return "none";
 
   if (reranker.type === "customer_reranker") {
     return {

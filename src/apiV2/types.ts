@@ -74,6 +74,7 @@ export type StreamQueryConfig = {
       endTag?: string;
     };
     reranker?:
+      | "none"
       | {
           type: "customer_reranker";
           rerankerId: string;
@@ -114,6 +115,7 @@ export type StreamEvent =
   | SearchResultsEvent
   | ChatInfoEvent
   | GenerationChunkEvent
+  | GenerationInfoEvent
   | GenerationEndEvent
   | FactualConsistencyScoreEvent
   | EndEvent
@@ -146,6 +148,12 @@ export type GenerationChunkEvent = BaseEvent & {
   type: "generationChunk";
   updatedText: string;
   generationChunk: string;
+};
+
+export type GenerationInfoEvent = BaseEvent & {
+  type: "generationInfo";
+  renderedPrompt?: string;
+  rephrasedQuery?: string;
 };
 
 export type GenerationEndEvent = BaseEvent & {

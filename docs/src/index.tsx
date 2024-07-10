@@ -75,6 +75,7 @@ const App = () => {
           sentencesBefore: 2,
           sentencesAfter: 2,
         },
+        reranker: "none",
       },
       generation: {
         maxUsedSearchResults: 5,

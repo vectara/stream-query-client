@@ -61,6 +61,7 @@ export class EventBuffer {
       turn_id,
       factual_consistency_score,
       generation_chunk,
+      generation_info,
     } = rawEvent;
 
     switch (type) {
@@ -95,6 +96,15 @@ export class EventBuffer {
           type: "generationChunk",
           updatedText: this.updatedText,
           generationChunk: generation_chunk,
+          ...(this.includeRaw && { raw: rawEvent }),
+        });
+        break;
+
+      case "generation_info":
+        this.events.push({
+          type: "generationInfo",
+          renderedPrompt: generation_info.rendered_prompt,
+          rephrasedQuery: generation_info.rephrased_query,
           ...(this.includeRaw && { raw: rawEvent }),
         });
         break;
