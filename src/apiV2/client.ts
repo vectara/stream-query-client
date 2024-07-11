@@ -170,11 +170,8 @@ export const streamQueryV2 = async ({
   };
 
   try {
-    const { cancelStream, stream, status } = await generateStream(
-      headers,
-      JSON.stringify(body),
-      url
-    );
+    const { cancelStream, stream, status, responseHeaders } =
+      await generateStream(headers, JSON.stringify(body), url);
 
     const consumeStream = async () => {
       try {
@@ -211,7 +208,7 @@ export const streamQueryV2 = async ({
 
     consumeStream();
 
-    return { cancelStream, request, status };
+    return { cancelStream, request, status, responseHeaders };
   } catch (error) {
     if (error instanceof Error) {
       onStreamEvent({
