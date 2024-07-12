@@ -10,13 +10,13 @@ describe("stream-query-client API v1", () => {
   let server: SetupServerApi;
 
   beforeAll(async () => {
-    server = createTestStreamingServer(
-      "/v1/stream-query",
+    server = createTestStreamingServer({
+      path: "/v1/stream-query",
       chunks,
-      (json: any) => {
+      createChunk: (json: any) => {
         return encoder.encode(JSON.stringify(json));
-      }
-    );
+      },
+    });
     await server.listen();
   });
 

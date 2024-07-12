@@ -16,8 +16,8 @@ data:{"type":"end"}
     expect(onStreamEvent).toHaveBeenNthCalledWith(1, {
       type: "error",
       messages: [
-        "INVALID_ARGUMENT: The filter expression contains an error. Syntax error at 1:0 nc79bc8s must be referenced as doc.nc79bc8s or part.nc79bc8s",
-      ],
+        "INVALID_ARGUMENT: The filter expression contains an error. Syntax error at 1:0 nc79bc8s must be referenced as doc.nc79bc8s or part.nc79bc8s"
+      ]
     });
 
     expect(onStreamEvent).toHaveBeenNthCalledWith(2, { type: "end" });
@@ -42,7 +42,7 @@ data:{"type":"search_results",
 
     expect(onStreamEvent).toHaveBeenCalledWith({
       type: "searchResults",
-      searchResults: [{ id: "doc1" }],
+      searchResults: [{ id: "doc1" }]
     });
   });
 
@@ -63,8 +63,8 @@ data:{"type":"end"}
     expect(onStreamEvent).toHaveBeenNthCalledWith(1, {
       type: "error",
       messages: [
-        "INVALID_ARGUMENT: The filter expression contains an error. Syntax error at 1:0 nc79bc8s must be referenced as doc.nc79bc8s or part.nc79bc8s",
-      ],
+        "INVALID_ARGUMENT: The filter expression contains an error. Syntax error at 1:0 nc79bc8s must be referenced as doc.nc79bc8s or part.nc79bc8s"
+      ]
     });
 
     expect(onStreamEvent).toHaveBeenNthCalledWith(2, { type: "end" });
@@ -82,7 +82,7 @@ data:{"type":"end"}
       type: "unexpectedError",
       raw: `
       {"messages":["Request failed. See https://status.vectara.com for the latest info on any outages. If the problem persists, please contact us via support or via our community forums at https://discuss.vectara.com if you’re a Growth user."],"request_id":"00000000000000000000000000000000"}
-      `,
+      `
     });
   });
 
@@ -98,7 +98,7 @@ data:{"type":"apocalypse"}
     expect(onStreamEvent).toHaveBeenCalledWith({
       type: "unexpectedEvent",
       rawType: "meteor_strike",
-      raw: { type: "apocalypse" },
+      raw: { type: "apocalypse" }
     });
   });
 });

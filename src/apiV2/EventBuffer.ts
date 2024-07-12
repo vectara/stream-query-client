@@ -8,11 +8,7 @@ export class EventBuffer {
   private eventInProgress = "";
   private updatedText = "";
 
-  constructor(
-    onStreamEvent: (event: any) => void,
-    includeRaw = false,
-    status = 200
-  ) {
+  constructor(onStreamEvent: (event: any) => void, includeRaw = false, status = 200) {
     this.events = [];
     this.onStreamEvent = onStreamEvent;
     this.includeRaw = includeRaw;
@@ -44,8 +40,12 @@ export class EventBuffer {
         const rawEvent = JSON.parse(this.eventInProgress);
         this.enqueueEvent(rawEvent);
         this.eventInProgress = "";
-      } catch {
-        // @tes-expect-error no-empty
+      } catch (error: any) {
+        const isJsonError = error.stack.includes("at JSON.parse");
+        // Silently ignore JSON parsing errors, as they are expected.
+        if (!isJsonError) {
+          console.error(error);
+        }
       }
     });
 
@@ -61,6 +61,8 @@ export class EventBuffer {
       turn_id,
       factual_consistency_score,
       generation_chunk,
+      rendered_prompt,
+      rephrased_query
     } = rawEvent;
 
     switch (type) {
@@ -68,7 +70,7 @@ export class EventBuffer {
         this.events.push({
           type: "error",
           messages,
-          ...(this.includeRaw && { raw: rawEvent }),
+          ...(this.includeRaw && { raw: rawEvent })
         });
         break;
 
@@ -76,7 +78,7 @@ export class EventBuffer {
         this.events.push({
           type: "searchResults",
           searchResults: search_results,
-          ...(this.includeRaw && { raw: rawEvent }),
+          ...(this.includeRaw && { raw: rawEvent })
         });
         break;
 
@@ -85,7 +87,7 @@ export class EventBuffer {
           type: "chatInfo",
           chatId: chat_id,
           turnId: turn_id,
-          ...(this.includeRaw && { raw: rawEvent }),
+          ...(this.includeRaw && { raw: rawEvent })
         });
         break;
 
@@ -95,14 +97,23 @@ export class EventBuffer {
           type: "generationChunk",
           updatedText: this.updatedText,
           generationChunk: generation_chunk,
-          ...(this.includeRaw && { raw: rawEvent }),
+          ...(this.includeRaw && { raw: rawEvent })
+        });
+        break;
+
+      case "generation_info":
+        this.events.push({
+          type: "generationInfo",
+          renderedPrompt: rendered_prompt,
+          rephrasedQuery: rephrased_query,
+          ...(this.includeRaw && { raw: rawEvent })
         });
         break;
 
       case "generation_end":
         this.events.push({
           type: "generationEnd",
-          ...(this.includeRaw && { raw: rawEvent }),
+          ...(this.includeRaw && { raw: rawEvent })
         });
         break;
 
@@ -110,14 +121,14 @@ export class EventBuffer {
         this.events.push({
           type: "factualConsistencyScore",
           factualConsistencyScore: factual_consistency_score,
-          ...(this.includeRaw && { raw: rawEvent }),
+          ...(this.includeRaw && { raw: rawEvent })
         });
         break;
 
       case "end":
         this.events.push({
           type: "end",
-          ...(this.includeRaw && { raw: rawEvent }),
+          ...(this.includeRaw && { raw: rawEvent })
         });
         break;
 
@@ -126,20 +137,20 @@ export class EventBuffer {
           this.events.push({
             type: "unexpectedEvent",
             rawType: type,
-            raw: rawEvent,
+            raw: rawEvent
           });
         } else if (this.status !== 200) {
           // Assume an error.
           this.events.push({
             type: "requestError",
             status: this.status,
-            raw: rawEvent,
+            raw: rawEvent
           });
         } else {
           // Assume an error.
           this.events.push({
             type: "unexpectedError",
-            raw: rawEvent,
+            raw: rawEvent
           });
         }
     }

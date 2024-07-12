@@ -10,12 +10,16 @@ data:{"type":"chat_info","chat_id":"cht_74b5a5f3-1f51-4427-a317-f62efb493928","t
 const chunk3 = `event:generation_chunk
 data:{"type":"generation_chunk","generation_chunk":"Markdown is "}`;
 
+// Generation info.
+const chunk4 = `event:generation_info
+data:{"type":"generation_info","rephrased_query":"Rephrased query","rendered_prompt":"Rendered prompt"}`;
+
 // FCS.
-const chunk4 = `event:factual_consistency_score
+const chunk5 = `event:factual_consistency_score
 data:{"type":"factual_consistency_score","factual_consistency_score":0.41796625}`;
 
 // // End.
-const chunk5 = `event:end
+const chunk6 = `event:end
 data:{"type":"end"}`;
 
-export const chunks = [chunk1, chunk2, chunk3, chunk4, chunk5];
+export const chunks = [chunk1, chunk2, chunk3, chunk4, chunk5, chunk6];
