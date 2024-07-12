@@ -74,7 +74,7 @@ export type StreamQueryConfig = {
       endTag?: string;
     };
     reranker?:
-      | "none"
+      | { type: "none" }
       | {
           type: "customer_reranker";
           rerankerId: string;

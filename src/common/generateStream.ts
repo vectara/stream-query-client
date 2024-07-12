@@ -12,6 +12,12 @@ export const generateStream = async (
     signal: controller.signal,
   });
 
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.statusText})`, {
+      cause: response.status,
+    });
+  }
+
   if (!response.body) throw new Error("Response body does not exist");
 
   return {

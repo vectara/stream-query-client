@@ -44,8 +44,12 @@ export class EventBuffer {
         const rawEvent = JSON.parse(this.eventInProgress);
         this.enqueueEvent(rawEvent);
         this.eventInProgress = "";
-      } catch {
-        // @tes-expect-error no-empty
+      } catch (error: any) {
+        const isJsonError = error.stack.includes("at JSON.parse");
+        // Silently ignore JSON parsing errors, as they are expected.
+        if (!isJsonError) {
+          console.error(error);
+        }
       }
     });
 
@@ -61,7 +65,8 @@ export class EventBuffer {
       turn_id,
       factual_consistency_score,
       generation_chunk,
-      generation_info,
+      rendered_prompt,
+      rephrased_query,
     } = rawEvent;
 
     switch (type) {
@@ -103,8 +108,8 @@ export class EventBuffer {
       case "generation_info":
         this.events.push({
           type: "generationInfo",
-          renderedPrompt: generation_info.rendered_prompt,
-          rephrasedQuery: generation_info.rephrased_query,
+          renderedPrompt: rendered_prompt,
+          rephrasedQuery: rephrased_query,
           ...(this.includeRaw && { raw: rawEvent }),
         });
         break;

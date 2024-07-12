@@ -14,7 +14,12 @@ const convertReranker = (
   reranker?: StreamQueryConfig["search"]["reranker"]
 ) => {
   if (!reranker) return;
-  if (reranker === "none") return "none";
+
+  if (reranker.type === "none") {
+    return {
+      type: reranker.type,
+    };
+  }
 
   if (reranker.type === "customer_reranker") {
     return {
@@ -182,27 +187,15 @@ export const streamQueryV2 = async ({
           try {
             buffer.consumeChunk(chunk);
           } catch (error) {
-            if (error instanceof Error) {
-              onStreamEvent({
-                type: "genericError",
-                error,
-              });
-            } else {
-              throw error;
-            }
+            handleError(error, onStreamEvent);
           }
         }
       } catch (error) {
         if (error instanceof DOMException && error.name == "AbortError") {
           // Swallow the "DOMException: BodyStreamBuffer was aborted" error
           // triggered by cancelling a stream.
-        } else if (error instanceof Error) {
-          onStreamEvent({
-            type: "genericError",
-            error,
-          });
         } else {
-          throw error;
+          handleError(error, onStreamEvent);
         }
       }
     };
@@ -211,15 +204,19 @@ export const streamQueryV2 = async ({
 
     return { cancelStream, request, status, responseHeaders };
   } catch (error) {
-    if (error instanceof Error) {
-      onStreamEvent({
-        type: "genericError",
-        error,
-      });
-    } else {
-      throw error;
-    }
+    handleError(error, onStreamEvent);
   }
 
   return { request };
+};
+
+const handleError = (error: unknown, onStreamEvent: StreamEventHandler) => {
+  if (error instanceof Error) {
+    onStreamEvent({
+      type: "genericError",
+      error,
+    });
+  } else {
+    throw error;
+  }
 };
