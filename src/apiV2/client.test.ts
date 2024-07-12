@@ -14,17 +14,17 @@ const streamQueryConfig: StreamQueryConfig = {
   search: {
     offset: 0,
     limit: 5,
-    metadataFilter: "",
+    metadataFilter: ""
   },
   generation: {
     maxUsedSearchResults: 5,
     responseLanguage: "eng",
     enableFactualConsistencyScore: true,
-    promptName: "vectara-experimental-summary-ext-2023-12-11-large",
+    promptName: "vectara-experimental-summary-ext-2023-12-11-large"
   },
   chat: {
-    store: true,
-  },
+    store: true
+  }
 };
 
 describe("stream-query-client API v2", () => {
@@ -37,7 +37,7 @@ describe("stream-query-client API v2", () => {
         chunks,
         createChunk: (value: any) => {
           return encoder.encode(value);
-        },
+        }
       });
       await server.listen();
     });
@@ -68,8 +68,7 @@ describe("stream-query-client API v2", () => {
                   "Application-Version": 12,
                   "Character Count": 475,
                   "Character-Count-With-Spaces": 583,
-                  "Content-Type":
-                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                   "Creation-Date": "2021-02-25T10:03:47Z",
                   "Last-Modified": "2021-02-25T10:03:47Z",
                   "Last-Save-Date": "2021-02-25T10:03:47Z",
@@ -79,8 +78,7 @@ describe("stream-query-client API v2", () => {
                   Template: "Normal.dotm",
                   "Total-Time": 6,
                   "Word-Count": 83,
-                  "X-Parsed-By":
-                    "org.apache.tika.parser.microsoft.ooxml.OOXMLParser",
+                  "X-Parsed-By": "org.apache.tika.parser.microsoft.ooxml.OOXMLParser",
                   date: "2021-02-25T10:03:47Z",
                   "dcterms:created": "2021-02-25T10:03:47Z",
                   "dcterms:modified": "2021-02-25T10:03:47Z",
@@ -98,39 +96,39 @@ describe("stream-query-client API v2", () => {
                   "meta:save-date": "2021-02-25T10:03:47Z",
                   "meta:word-count": 83,
                   modified: "2021-02-25T10:03:47Z",
-                  "xmpTPg:NPages": 1,
+                  "xmpTPg:NPages": 1
                 },
                 part_metadata: {
                   lang: "eng",
                   len: 25,
-                  offset: 648,
+                  offset: 648
                 },
-                document_id: "914e8885-1a65-4b56-a279-95661b264f3b",
-              },
-            ],
+                document_id: "914e8885-1a65-4b56-a279-95661b264f3b"
+              }
+            ]
           });
 
           expect(handleEvent).toHaveBeenNthCalledWith(2, {
             type: "chatInfo",
             chatId: "cht_74b5a5f3-1f51-4427-a317-f62efb493928",
-            turnId: "trn_74b5a5f3-1f51-4427-a317-f62efb493928",
+            turnId: "trn_74b5a5f3-1f51-4427-a317-f62efb493928"
           });
 
           expect(handleEvent).toHaveBeenNthCalledWith(3, {
             type: "generationChunk",
             generationChunk: "Markdown is ",
-            updatedText: "Markdown is ",
+            updatedText: "Markdown is "
           });
 
           expect(handleEvent).toHaveBeenNthCalledWith(4, {
             type: "generationInfo",
             renderedPrompt: "Rendered prompt",
-            rephrasedQuery: "Rephrased query",
+            rephrasedQuery: "Rephrased query"
           });
 
           expect(handleEvent).toHaveBeenNthCalledWith(5, {
             type: "factualConsistencyScore",
-            factualConsistencyScore: 0.41796625,
+            factualConsistencyScore: 0.41796625
           });
 
           expect(handleEvent).toHaveBeenNthCalledWith(6, { type: "end" });
@@ -143,7 +141,7 @@ describe("stream-query-client API v2", () => {
     it("surfaces response headers", async () => {
       const { responseHeaders } = await streamQueryV2({
         streamQueryConfig,
-        onStreamEvent: jest.fn(),
+        onStreamEvent: jest.fn()
       });
       expect(responseHeaders?.get("Content-Type")).toBe("text/json");
     });
@@ -151,7 +149,7 @@ describe("stream-query-client API v2", () => {
     it("surfaces response status", async () => {
       const { status } = await streamQueryV2({
         streamQueryConfig,
-        onStreamEvent: jest.fn(),
+        onStreamEvent: jest.fn()
       });
       expect(status).toBe(200);
     });
@@ -165,7 +163,7 @@ describe("stream-query-client API v2", () => {
         createChunk: (value: any) => {
           return encoder.encode(value);
         },
-        shouldRequestsFail: true,
+        shouldRequestsFail: true
       });
       await server.listen();
     });
@@ -186,7 +184,7 @@ describe("stream-query-client API v2", () => {
 
         expect(handleEvent).toHaveBeenNthCalledWith(1, {
           type: "genericError",
-          error: new Error("Request failed (Not found)"),
+          error: new Error("Request failed (Not found)")
         });
       };
 

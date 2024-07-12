@@ -6,7 +6,7 @@ export const createTestStreamingServer = ({
   path,
   chunks,
   createChunk,
-  shouldRequestsFail,
+  shouldRequestsFail
 }: {
   path: string;
   chunks: any[];
@@ -18,7 +18,7 @@ export const createTestStreamingServer = ({
       if (shouldRequestsFail) {
         return new HttpResponse(null, {
           status: 404,
-          statusText: "Not found",
+          statusText: "Not found"
         });
       }
 
@@ -29,14 +29,14 @@ export const createTestStreamingServer = ({
           });
 
           controller.close();
-        },
+        }
       });
 
       // Send the mocked response immediately.
       const response = new Response(stream, {
         headers: {
-          "Content-Type": "text/json",
-        },
+          "Content-Type": "text/json"
+        }
       });
 
       return response;

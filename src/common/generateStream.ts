@@ -1,20 +1,16 @@
-export const generateStream = async (
-  headers: Record<string, string>,
-  body: string,
-  url: string
-) => {
+export const generateStream = async (headers: Record<string, string>, body: string, url: string) => {
   const controller = new AbortController();
 
   const response = await fetch(url, {
     method: "POST",
     headers,
     body,
-    signal: controller.signal,
+    signal: controller.signal
   });
 
   if (!response.ok) {
     throw new Error(`Request failed (${response.statusText})`, {
-      cause: response.status,
+      cause: response.status
     });
   }
 
@@ -24,13 +20,11 @@ export const generateStream = async (
     stream: getIterableStream(response.body),
     cancelStream: () => controller.abort(),
     status: response.status,
-    responseHeaders: response.headers,
+    responseHeaders: response.headers
   };
 };
 
-async function* getIterableStream(
-  body: ReadableStream<Uint8Array>
-): AsyncIterable<string> {
+async function* getIterableStream(body: ReadableStream<Uint8Array>): AsyncIterable<string> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
 

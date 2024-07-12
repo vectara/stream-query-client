@@ -3,35 +3,33 @@ import {
   StreamQueryConfig,
   StreamEventHandler,
   StreamQueryRequest,
-  StreamQueryRequestHeaders,
+  StreamQueryRequestHeaders
 } from "./types";
 import { Query } from "./apiTypes";
 import { DEFAULT_DOMAIN } from "../common/constants";
 import { generateStream } from "../common/generateStream";
 import { EventBuffer } from "./EventBuffer";
 
-const convertReranker = (
-  reranker?: StreamQueryConfig["search"]["reranker"]
-) => {
+const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]) => {
   if (!reranker) return;
 
   if (reranker.type === "none") {
     return {
-      type: reranker.type,
+      type: reranker.type
     };
   }
 
   if (reranker.type === "customer_reranker") {
     return {
       type: reranker.type,
-      reranker_id: reranker.rerankerId,
+      reranker_id: reranker.rerankerId
     };
   }
 
   if (reranker.type === "mmr") {
     return {
       type: reranker.type,
-      diversity_bias: reranker.diversityBias,
+      diversity_bias: reranker.diversityBias
     };
   }
 };
@@ -41,7 +39,7 @@ const convertCitations = (citations?: GenerationConfig["citations"]) => {
 
   if (citations.style === "none" || citations.style === "numeric") {
     return {
-      style: citations.style,
+      style: citations.style
     };
   }
 
@@ -49,7 +47,7 @@ const convertCitations = (citations?: GenerationConfig["citations"]) => {
     return {
       style: citations.style,
       url_pattern: citations.urlPattern,
-      text_pattern: citations.textPattern,
+      text_pattern: citations.textPattern
     };
   }
 };
@@ -57,7 +55,7 @@ const convertCitations = (citations?: GenerationConfig["citations"]) => {
 export const streamQueryV2 = async ({
   streamQueryConfig,
   onStreamEvent,
-  includeRawEvents = false,
+  includeRawEvents = false
 }: {
   streamQueryConfig: StreamQueryConfig;
   onStreamEvent: StreamEventHandler;
@@ -78,10 +76,10 @@ export const streamQueryV2 = async ({
       offset,
       limit,
       contextConfiguration,
-      reranker,
+      reranker
     },
     generation,
-    chat,
+    chat
   } = streamQueryConfig;
 
   const body: Query.Body = {
@@ -93,8 +91,8 @@ export const streamQueryV2 = async ({
           metadata_filter: metadataFilter,
           lexical_interpolation: lexicalInterpolation,
           custom_dimensions: customDimensions,
-          semantics,
-        },
+          semantics
+        }
       ],
       offset,
       limit,
@@ -104,11 +102,11 @@ export const streamQueryV2 = async ({
         sentences_before: contextConfiguration?.sentencesBefore,
         sentences_after: contextConfiguration?.sentencesAfter,
         start_tag: contextConfiguration?.startTag,
-        end_tag: contextConfiguration?.endTag,
+        end_tag: contextConfiguration?.endTag
       },
-      reranker: convertReranker(reranker),
+      reranker: convertReranker(reranker)
     },
-    stream_response: true,
+    stream_response: true
   };
 
   if (generation) {
@@ -120,7 +118,7 @@ export const streamQueryV2 = async ({
       responseLanguage,
       modelParameters,
       citations,
-      enableFactualConsistencyScore,
+      enableFactualConsistencyScore
     } = generation;
 
     body.generation = {
@@ -133,16 +131,16 @@ export const streamQueryV2 = async ({
         max_tokens: modelParameters.maxTokens,
         temperature: modelParameters.temperature,
         frequency_penalty: modelParameters.frequencyPenalty,
-        presence_penalty: modelParameters.presencePenalty,
+        presence_penalty: modelParameters.presencePenalty
       },
       citations: convertCitations(citations),
-      enable_factual_consistency_score: enableFactualConsistencyScore,
+      enable_factual_consistency_score: enableFactualConsistencyScore
     };
   }
 
   if (chat) {
     body.chat = {
-      store: chat.store,
+      store: chat.store
     };
   }
 
@@ -160,7 +158,7 @@ export const streamQueryV2 = async ({
 
   const headers: StreamQueryRequestHeaders = {
     "customer-id": customerId,
-    "Content-Type": "application/json",
+    "Content-Type": "application/json"
   };
 
   if (apiKey) headers["x-api-key"] = apiKey;
@@ -172,12 +170,11 @@ export const streamQueryV2 = async ({
     method: "POST",
     url,
     headers,
-    body,
+    body
   };
 
   try {
-    const { cancelStream, stream, status, responseHeaders } =
-      await generateStream(headers, JSON.stringify(body), url);
+    const { cancelStream, stream, status, responseHeaders } = await generateStream(headers, JSON.stringify(body), url);
 
     const consumeStream = async () => {
       try {
@@ -214,7 +211,7 @@ const handleError = (error: unknown, onStreamEvent: StreamEventHandler) => {
   if (error instanceof Error) {
     onStreamEvent({
       type: "genericError",
-      error,
+      error
     });
   } else {
     throw error;
