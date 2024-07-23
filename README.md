@@ -38,6 +38,7 @@ const sendQuery = async () => {
     // Required fields.
     customerId: "customerIdValue",
     apiKey: "zqt_apiKeyValue",
+    // To run queries against multiple corpora, use a comma-separated list of corpus keys. For example: "corpus_1,corpus_2".
     corpusKey: "corpora_1",
     query: "How many coconuts can an African swallow carry?",
     search: {
