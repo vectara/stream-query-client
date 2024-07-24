@@ -85,15 +85,15 @@ export const streamQueryV2 = async ({
   const body: Query.Body = {
     query,
     search: {
-      corpora: [
+      corpora: corpusKey.split(",").map((key) => (
         {
-          corpus_key: corpusKey,
+          corpus_key: key,
           metadata_filter: metadataFilter,
           lexical_interpolation: lexicalInterpolation,
           custom_dimensions: customDimensions,
           semantics
         }
-      ],
+      )),
       offset,
       limit,
       context_configuration: {
