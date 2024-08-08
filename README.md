@@ -44,14 +44,14 @@ const sendQuery = async () => {
     search: {
       offset: 0,
       limit: 5,
-      metadataFilter: "",
+      metadataFilter: ""
     },
     generation: {
       maxUsedSearchResults: 5,
       responseLanguage: "eng",
       enableFactualConsistencyScore: true,
-      promptName: "summary-prompt-name",
-    },
+      generationPreset: "generation-preset-name"
+    }
   };
 
   const onStreamUpdate = (update: ApiV2.StreamUpdate) => {
