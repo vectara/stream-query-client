@@ -85,15 +85,13 @@ export const streamQueryV2 = async ({
   const body: Query.Body = {
     query,
     search: {
-      corpora: corpusKey.split(",").map((key) => (
-        {
-          corpus_key: key,
-          metadata_filter: metadataFilter,
-          lexical_interpolation: lexicalInterpolation,
-          custom_dimensions: customDimensions,
-          semantics
-        }
-      )),
+      corpora: corpusKey.split(",").map((key) => ({
+        corpus_key: key,
+        metadata_filter: metadataFilter,
+        lexical_interpolation: lexicalInterpolation,
+        custom_dimensions: customDimensions,
+        semantics
+      })),
       offset,
       limit,
       context_configuration: {
@@ -111,7 +109,7 @@ export const streamQueryV2 = async ({
 
   if (generation) {
     const {
-      promptName,
+      generationPresetName,
       maxUsedSearchResults,
       promptText,
       maxResponseCharacters,
@@ -122,7 +120,7 @@ export const streamQueryV2 = async ({
     } = generation;
 
     body.generation = {
-      prompt_name: promptName,
+      generation_preset_name: generationPresetName,
       max_used_search_results: maxUsedSearchResults,
       prompt_text: promptText,
       max_response_characters: maxResponseCharacters,

@@ -55,7 +55,7 @@ export namespace Query {
   };
 
   export type GenerationConfiguration = {
-    prompt_name?: string;
+    generation_preset_name?: string;
     max_used_search_results?: number;
     prompt_text?: string;
     max_response_characters?: number;
