@@ -5,7 +5,7 @@ export type { Query } from "./apiTypes";
 
 export type GenerationConfig = {
   // The preferred prompt to use, if applicable
-  promptName?: string;
+  generationPresetName?: string;
   // The number of search results to include in creating the summary
   maxUsedSearchResults?: number;
   // Custom prompt for summarization.
