@@ -20,7 +20,7 @@ const streamQueryConfig: StreamQueryConfig = {
     maxUsedSearchResults: 5,
     responseLanguage: "eng",
     enableFactualConsistencyScore: true,
-    promptName: "vectara-experimental-summary-ext-2023-12-11-large"
+    generationPresetName: "vectara-experimental-summary-ext-2023-12-11-large"
   },
   chat: {
     store: true
