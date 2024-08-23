@@ -1,11 +1,6 @@
 import { useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import {
-  streamQueryV1,
-  ApiV1,
-  streamQueryV2,
-  ApiV2,
-} from "@vectara/stream-query-client";
+import { streamQueryV1, ApiV1, streamQueryV2, ApiV2 } from "@vectara/stream-query-client";
 
 const CUSTOMER_ID = "1526022105";
 const API_KEY = "zqt_WvU_2ewh7ZGRwq8LdL2SV8B9RJmVGyUm1VAuOw";
@@ -35,11 +30,11 @@ const App = () => {
       language: "eng",
       chat: {
         store: true,
-        conversationId: conversationIdV1,
+        conversationId: conversationIdV1
       },
       debug: true,
       enableFactualConsistencyScore: true,
-      summaryPromptName: "vectara-experimental-summary-ext-2023-12-11-large",
+      summaryPromptName: "vectara-experimental-summary-ext-2023-12-11-large"
     };
 
     const onStreamUpdate = (update: ApiV1.StreamUpdate) => {
@@ -73,20 +68,20 @@ const App = () => {
         lexicalInterpolation: 0,
         contextConfiguration: {
           sentencesBefore: 2,
-          sentencesAfter: 2,
+          sentencesAfter: 2
         },
-        reranker: "none",
+        reranker: { type: "none" }
       },
       generation: {
         maxUsedSearchResults: 5,
         responseLanguage: "eng",
         enableFactualConsistencyScore: true,
-        promptName: "vectara-experimental-summary-ext-2023-12-11-large",
+        generationPresetName: "vectara-experimental-summary-ext-2023-12-11-large"
       },
       chat: {
         store: true,
-        conversationId: conversationIdV2,
-      },
+        conversationId: conversationIdV2
+      }
     };
 
     const onStreamEvent = (event: ApiV2.StreamEvent) => {
@@ -112,10 +107,7 @@ const App = () => {
 
     const queryStream = await streamQueryV2({
       streamQueryConfig,
-      onStreamEvent,
-      onError: (error) => {
-        console.error("Error", error);
-      },
+      onStreamEvent
     });
 
     cancelStream.current = queryStream?.cancelStream ?? null;

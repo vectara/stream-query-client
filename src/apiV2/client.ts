@@ -32,6 +32,17 @@ const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]) => 
       diversity_bias: reranker.diversityBias
     };
   }
+
+  if (reranker.type === "userfn") {
+    // The user function reranker needs a function to run.
+    // If the user hasn't supplied it, don't send the reranker as part of the request.
+    return reranker.userFunction
+      ? {
+          type: reranker.type,
+          user_function: reranker.userFunction
+        }
+      : undefined;
+  }
 };
 
 const convertCitations = (citations?: GenerationConfig["citations"]) => {

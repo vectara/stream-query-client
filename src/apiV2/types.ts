@@ -85,6 +85,10 @@ export type StreamQueryConfig = {
           // 0 will optimize for results that are as closely related to the query as possible.
           // 1 will optimize for results that are as diverse as possible.
           diversityBias: number;
+        }
+      | {
+          type: "userfn";
+          userFunction?: string;
         };
   };
 

@@ -13,6 +13,11 @@ export namespace Query {
     diversity_bias: number;
   };
 
+  export type UserFunctionReranker = {
+    type: "userfn";
+    user_function: string;
+  };
+
   export type SearchConfiguration = {
     corpora: {
       corpus_key: string;
@@ -31,7 +36,7 @@ export namespace Query {
       start_tag?: string;
       end_tag?: string;
     };
-    reranker?: NoneReranker | CustomerSpecificReranker | MmrReranker;
+    reranker?: NoneReranker | CustomerSpecificReranker | MmrReranker | UserFunctionReranker;
   };
 
   export type NoneCitations = {
