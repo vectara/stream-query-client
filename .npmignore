@@ -1,4 +1,5 @@
 src/
+docs/
 node_modules/
 images/
 
@@ -6,3 +7,7 @@ images/
 build.js
 tsconfig.json
 tsconfig.tsbuildinfo
+.eslintrc.js
+.prettierrc.json
+jest.config.js
+buildConfig.js

@@ -32,6 +32,17 @@ const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]) => 
       diversity_bias: reranker.diversityBias
     };
   }
+
+  if (reranker.type === "userfn") {
+    // The user function reranker needs a function to run.
+    // If the user hasn't supplied it, don't send the reranker as part of the request.
+    return reranker.userFunction
+      ? {
+          type: reranker.type,
+          user_function: reranker.userFunction
+        }
+      : undefined;
+  }
 };
 
 const convertCitations = (citations?: GenerationConfig["citations"]) => {
@@ -85,15 +96,13 @@ export const streamQueryV2 = async ({
   const body: Query.Body = {
     query,
     search: {
-      corpora: corpusKey.split(",").map((key) => (
-          {
-            corpus_key: key,
-            metadata_filter: metadataFilter ? `doc.source = '${metadataFilter}'` : undefined,
-            lexical_interpolation: lexicalInterpolation,
-            custom_dimensions: customDimensions,
-            semantics
-          }
-      )),
+      corpora: corpusKey.split(",").map((key) => ({
+        corpus_key: key,
+        metadata_filter: metadataFilter,
+        lexical_interpolation: lexicalInterpolation,
+        custom_dimensions: customDimensions,
+        semantics
+      })),
       offset,
       limit,
       context_configuration: {
@@ -111,7 +120,7 @@ export const streamQueryV2 = async ({
 
   if (generation) {
     const {
-      promptName,
+      generationPresetName,
       maxUsedSearchResults,
       promptText,
       maxResponseCharacters,
@@ -122,7 +131,7 @@ export const streamQueryV2 = async ({
     } = generation;
 
     body.generation = {
-      prompt_name: promptName,
+      generation_preset_name: generationPresetName,
       max_used_search_results: maxUsedSearchResults,
       prompt_text: promptText,
       max_response_characters: maxResponseCharacters,

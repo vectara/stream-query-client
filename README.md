@@ -37,21 +37,21 @@ const sendQuery = async () => {
   const configurationOptions: ApiV2.StreamQueryConfig = {
     // Required fields.
     customerId: "customerIdValue",
-    apiKey: "zqt_apiKeyValue", 
+    apiKey: "zqt_apiKeyValue",
     // To run queries against multiple corpora, use a comma-separated list of corpus keys. For example: "corpus_1,corpus_2".
     corpusKey: "corpora_1",
     query: "How many coconuts can an African swallow carry?",
     search: {
       offset: 0,
       limit: 5,
-      metadataFilter: "",
+      metadataFilter: ""
     },
     generation: {
       maxUsedSearchResults: 5,
       responseLanguage: "eng",
       enableFactualConsistencyScore: true,
-      promptName: "summary-prompt-name",
-    },
+      generationPreset: "generation-preset-name"
+    }
   };
 
   const onStreamUpdate = (update: ApiV2.StreamUpdate) => {

@@ -5,7 +5,7 @@ export type { Query } from "./apiTypes";
 
 export type GenerationConfig = {
   // The preferred prompt to use, if applicable
-  promptName?: string;
+  generationPresetName?: string;
   // The number of search results to include in creating the summary
   maxUsedSearchResults?: number;
   // Custom prompt for summarization.
@@ -85,6 +85,10 @@ export type StreamQueryConfig = {
           // 0 will optimize for results that are as closely related to the query as possible.
           // 1 will optimize for results that are as diverse as possible.
           diversityBias: number;
+        }
+      | {
+          type: "userfn";
+          userFunction?: string;
         };
   };
 
