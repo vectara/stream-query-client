@@ -73,23 +73,16 @@ export type StreamQueryConfig = {
       startTag?: string;
       endTag?: string;
     };
-    reranker?:
-      | { type: "none" }
-      | {
-          type: "customer_reranker";
-          rerankerId: string;
-        }
-      | {
-          type: "mmr";
-          // Diversity bias ranges from 0 to 1.
-          // 0 will optimize for results that are as closely related to the query as possible.
-          // 1 will optimize for results that are as diverse as possible.
-          diversityBias: number;
-        }
-      | {
-          type: "userfn";
-          userFunction?: string;
-        };
+    reranker?: {
+      isEnabled?: boolean,
+      numResults?: number,
+      names?: string,
+      // Diversity bias ranges from 0 to 1.
+      // 0 will optimize for results that are as closely related to the query as possible.
+      // 1 will optimize for results that are as diverse as possible.
+      diversityBias?: number,
+      userFunction?: string
+    };
   };
 
   generation?: GenerationConfig;

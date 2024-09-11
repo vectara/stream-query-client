@@ -10,38 +10,50 @@ import { DEFAULT_DOMAIN } from "../common/constants";
 import { generateStream } from "../common/generateStream";
 import { EventBuffer } from "./EventBuffer";
 
-const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]) => {
-  if (!reranker) return;
-
-  if (reranker.type === "none") {
+const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]): Query.NoneReranker | Query.ChainReranker => {
+  if (reranker?.isEnabled) {
     return {
-      type: reranker.type
-    };
-  }
+      type: "chain",
+      rerankers: reranker?.names?.split(",").map((name: string) => {
 
-  if (reranker.type === "customer_reranker") {
-    return {
-      type: reranker.type,
-      reranker_id: reranker.rerankerId
-    };
-  }
+        switch (name) {
+          case "slingshot":
+            return {
+              type: "customer_reranker",
+              reranker_id: `rnk_${272725719}`
+            };
 
-  if (reranker.type === "mmr") {
-    return {
-      type: reranker.type,
-      diversity_bias: reranker.diversityBias
-    };
-  }
+          case "normal":
+            return {
+              type: "customer_reranker",
+              reranker_id: `rnk_${272725717}`
+            };
 
-  if (reranker.type === "userfn") {
-    // The user function reranker needs a function to run.
-    // If the user hasn't supplied it, don't send the reranker as part of the request.
-    return reranker.userFunction
-      ? {
-          type: reranker.type,
-          user_function: reranker.userFunction
+          case "mmr":
+            return {
+              type: name,
+              diversity_bias: reranker.diversityBias
+            };
+
+          case "userfn":
+            return {
+              type: name,
+              user_function: reranker.userFunction
+            };
+
+          default:
+            return {
+              type: "none"
+            }
         }
-      : undefined;
+      })
+    } as Query.ChainReranker;
+
+  }
+  else {
+    return {
+      type: "none"
+    } as Query.NoneReranker;
   }
 };
 

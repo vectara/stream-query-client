@@ -1,9 +1,9 @@
 import {
   Chat,
-  ParsedResult,
+  ParsedResult, Reranker, RerankingConfig,
   StreamQueryConfig,
   StreamUpdate,
-  StreamUpdateHandler,
+  StreamUpdateHandler
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
 import { processStreamChunk } from "./processStreamChunk";
@@ -11,6 +11,58 @@ import { SNIPPET_START_TAG, SNIPPET_END_TAG } from "./constants";
 import { DEFAULT_DOMAIN } from "../common/constants";
 import { generateStream } from "../common/generateStream";
 
+const convertReranker = (reranker?: Reranker) => {
+  if (!reranker?.isEnabled || !reranker.names) {
+    return {};
+  }
+
+
+  const rerankerNames = reranker?.names?.split(",");
+  const buildRerankingConfig = (index: number): RerankingConfig | Record<string, string> => {
+    if (index >= rerankerNames.length) {
+      return {};
+    }
+
+    const name = rerankerNames[index];
+
+    switch (name) {
+      case "userfn":
+        return {
+          reranker_name: "User_Defined_Function_Reranker",
+          user_function: reranker.userFunction ?? "",
+          next_reranking_config: buildRerankingConfig(index + 1)
+        };
+
+      case "slingshot":
+        return {
+          reranker_name: "vectara-rrk-v1.0.0",
+          reranker_id: 272725719,
+          next_reranking_config: buildRerankingConfig(index + 1)
+        };
+
+      case "normal":
+        return {
+          reranker_name: "Rerank_Multilingual_v1",
+          reranker_id: 272725717,
+          next_reranking_config: buildRerankingConfig(index + 1)
+        };
+
+      case "mmr":
+        return {
+          reranker_name: "Maximum Marginal Relevance Reranker",
+          diversity_bias: reranker.diversityBias ?? 0.3,
+          next_reranking_config: buildRerankingConfig(index + 1)
+        };
+
+      // Add other reranker types as needed
+      default:
+        return {}
+    }
+  };
+
+  // Start the recursion from the first reranker
+  return buildRerankingConfig(0);
+};
 export const streamQueryV1 = async (
   config: StreamQueryConfig,
   onStreamUpdate: StreamUpdateHandler
@@ -44,27 +96,14 @@ export const streamQueryV1 = async (
     };
   });
 
-  const rerankingConfig = !config.rerank
-    ? {}
-    : {
-        rerankingConfig: {
-          rerankerId: config.rerankerId,
-          ...(config.rerankerId === 272725718
-            ? {
-                mmrConfig: {
-                  diversityBias: config.rerankDiversityBias,
-                },
-              }
-            : {}),
-        },
-      };
+  const rerankingConfig = convertReranker(config.reranker);
 
   const requestBody = JSON.stringify({
     query: [
       {
         query: config.queryValue,
         start: 0,
-        numResults: config.rerank ? config.rerankNumResults : 10,
+        numResults: config.reranker?.isEnabled ? config.reranker.numResults : 10,
         corpusKey: corpusKeyList,
         contextConfig: {
           sentencesBefore: config.summaryNumSentences ?? 2,
@@ -86,7 +125,7 @@ export const streamQueryV1 = async (
             },
           },
         ],
-        ...rerankingConfig,
+        rerankingConfig,
       },
     ],
   });

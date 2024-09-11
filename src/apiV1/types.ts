@@ -1,5 +1,22 @@
 import { SummaryLanguage } from "../common/types";
 
+export type Reranker = {
+  isEnabled?: boolean,
+  // Specify how many search results to retrieve and rerank.
+  numResults?: number,
+
+  // Rerankers to be used to order your search results for increased relevance.
+  names?: string,
+
+  // Diversity bias ranges from 0 to 1.
+  // 0 will optimize for results that are as closely related to the query as possible.
+  // 1 will optimize for results that are as diverse as possible.
+  diversityBias?: number,
+
+  // enables users to define custom reranking functions using document-level metadata, part-level metadata.
+  userFunction?: string
+}
+
 export type StreamQueryConfig = {
   // IDs of Vectara corpora to include in the query
   corpusIds: Array<string>;
@@ -12,21 +29,7 @@ export type StreamQueryConfig = {
 
   // The language the summary should be in.
   language?: SummaryLanguage;
-
-  // Reranking orders your search results for increased relevance.
-  rerank?: boolean;
-
-  // Specify how many search results to retrieve and rerank.
-  rerankNumResults?: number;
-
-  // Which reranker will be used.
-  rerankerId?: number;
-
-  // Diversity bias ranges from 0 to 1.
-  // 0 will optimize for results that are as closely related to the query as possible.
-  // 1 will optimize for results that are as diverse as possible.
-  rerankDiversityBias?: number;
-
+  reranker?: Reranker,
   // A number from 0.0 -> 1.0 that determines how much to leverage neural search and keyword search.
   // A value of 0.0 is purely neural search, where a value of 1.0 is purely keyword search.
   // Numbers in between are a combination of the two, leaning one way or another.
@@ -177,4 +180,12 @@ type SearchResponseSummary = {
 export type DocMetadata = {
   name: string;
   value: string;
+};
+
+export type RerankingConfig = {
+  reranker_name?: string;
+  user_function?: string;
+  reranker_id?: number;
+  diversity_bias?: number;
+  next_reranking_config?: RerankingConfig;
 };
