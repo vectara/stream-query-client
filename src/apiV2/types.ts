@@ -31,6 +31,11 @@ export type GenerationConfig = {
   enableFactualConsistencyScore?: boolean;
 };
 
+export type Reranker = {type: "none"}
+  | { type: "customer_reranker"; rerankerId: string }
+  | { type: "mmr"; diversityBias: number }
+  | { type: "userfn"; userFunction?: string };
+
 export type StreamQueryConfig = {
   // The customer ID of the Vectara corpora owner.
   customerId: string;
@@ -73,16 +78,27 @@ export type StreamQueryConfig = {
       startTag?: string;
       endTag?: string;
     };
-    reranker?: {
-      isEnabled?: boolean,
-      numResults?: number,
-      names?: string,
+    reranker?:
+      | { type: "none" }
+      | {
+      type: "customer_reranker";
+      rerankerId: string;
+    }
+      | {
+      type: "mmr";
       // Diversity bias ranges from 0 to 1.
       // 0 will optimize for results that are as closely related to the query as possible.
       // 1 will optimize for results that are as diverse as possible.
-      diversityBias?: number,
-      userFunction?: string
-    };
+      diversityBias: number;
+    }
+      | {
+      type: "userfn";
+      userFunction?: string;
+    }
+      | {
+      type: "chain";
+      rerankers: Reranker[]
+    }
   };
 
   generation?: GenerationConfig;

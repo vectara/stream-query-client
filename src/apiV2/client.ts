@@ -9,53 +9,42 @@ import { Query } from "./apiTypes";
 import { DEFAULT_DOMAIN } from "../common/constants";
 import { generateStream } from "../common/generateStream";
 import { EventBuffer } from "./EventBuffer";
+import { Reranker } from "./types";
 
-const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]): Query.NoneReranker | Query.ChainReranker => {
-  if (reranker?.isEnabled) {
-    return {
-      type: "chain",
-      rerankers: reranker?.names?.split(",").map((name: string) => {
+const convertSingleReranker = (reranker?: Reranker) => {
+  if (!reranker) return;
 
-        switch (name) {
-          case "slingshot":
-            return {
-              type: "customer_reranker",
-              reranker_id: `rnk_${272725719}`
-            };
-
-          case "normal":
-            return {
-              type: "customer_reranker",
-              reranker_id: `rnk_${272725717}`
-            };
-
-          case "mmr":
-            return {
-              type: name,
-              diversity_bias: reranker.diversityBias
-            };
-
-          case "userfn":
-            return {
-              type: name,
-              user_function: reranker.userFunction
-            };
-
-          default:
-            return {
-              type: "none"
-            }
-        }
-      })
-    } as Query.ChainReranker;
-
-  }
-  else {
-    return {
-      type: "none"
-    } as Query.NoneReranker;
+  switch (reranker.type) {
+    case "none":
+      return { type: reranker.type };
+    case "customer_reranker":
+      return { type: reranker.type, reranker_id: reranker.rerankerId };
+    case "mmr":
+      return { type: reranker.type, diversity_bias: reranker.diversityBias };
+    case "userfn":
+      // The user function reranker needs a function to run.
+      // If the user hasn't supplied it, don't send the reranker as part of the request.
+      return reranker.userFunction
+        ? { type: reranker.type, user_function: reranker.userFunction }
+        : undefined;
+    default:
+      return;
   }
 };
+
+const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]) => {
+  if (!reranker) return;
+
+  if (reranker.type === "chain") {
+    return {
+      type: reranker.type,
+      rerankers: reranker.rerankers.map(convertSingleReranker).filter(Boolean)
+    } as Query.ChainReranker;
+  }
+
+  return convertSingleReranker(reranker);
+};
+
 
 const convertCitations = (citations?: GenerationConfig["citations"]) => {
   if (!citations) return;

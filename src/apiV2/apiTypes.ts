@@ -20,7 +20,7 @@ export namespace Query {
 
   export type ChainReranker = {
     type: string;
-    rerankers: (CustomerSpecificReranker | UserFunctionReranker | MmrReranker | NoneReranker)[];
+    rerankers: (NoneReranker | CustomerSpecificReranker | MmrReranker | UserFunctionReranker)[];
   };
 
   export type SearchConfiguration = {
@@ -41,7 +41,7 @@ export namespace Query {
       start_tag?: string;
       end_tag?: string;
     };
-    reranker?: NoneReranker | ChainReranker;
+    reranker?: NoneReranker | CustomerSpecificReranker | MmrReranker | UserFunctionReranker | ChainReranker
   };
 
   export type NoneCitations = {
