@@ -12,8 +12,7 @@ export type StreamQueryConfig = {
 
   // The language the summary should be in.
   language?: SummaryLanguage;
-
-
+  
   // Reranking orders your search results for increased relevance.
   rerank?: boolean;
 

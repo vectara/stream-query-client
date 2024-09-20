@@ -47,17 +47,17 @@ export const streamQueryV1 = async (
   const rerankingConfig = !config.rerank
     ? {}
     : {
-      rerankingConfig: {
-        rerankerId: config.rerankerId,
-        ...(config.rerankerId === 272725718
-          ? {
-            mmrConfig: {
-              diversityBias: config.rerankDiversityBias,
-            },
-          }
-          : {}),
-      },
-    };
+        rerankingConfig: {
+          rerankerId: config.rerankerId,
+          ...(config.rerankerId === 272725718
+            ? {
+              mmrConfig: {
+                diversityBias: config.rerankDiversityBias,
+              },
+            }
+            : {}),
+        },
+      };
 
   const requestBody = JSON.stringify({
     query: [
