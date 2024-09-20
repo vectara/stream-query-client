@@ -3,7 +3,7 @@ import {
   ParsedResult,
   StreamQueryConfig,
   StreamUpdate,
-  StreamUpdateHandler,
+  StreamUpdateHandler
 } from "./types";
 import { deserializeSearchResponse } from "./deserializeSearchResponse";
 import { processStreamChunk } from "./processStreamChunk";

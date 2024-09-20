@@ -9,41 +9,42 @@ import { Query } from "./apiTypes";
 import { DEFAULT_DOMAIN } from "../common/constants";
 import { generateStream } from "../common/generateStream";
 import { EventBuffer } from "./EventBuffer";
+import { Reranker } from "./types";
+
+const convertSingleReranker = (reranker?: Reranker) => {
+  if (!reranker) return;
+
+  switch (reranker.type) {
+    case "none":
+      return { type: reranker.type };
+    case "customer_reranker":
+      return { type: reranker.type, reranker_id: reranker.rerankerId };
+    case "mmr":
+      return { type: reranker.type, diversity_bias: reranker.diversityBias };
+    case "userfn":
+      // The user function reranker needs a function to run.
+      // If the user hasn't supplied it, don't send the reranker as part of the request.
+      return reranker.userFunction
+        ? { type: reranker.type, user_function: reranker.userFunction }
+        : undefined;
+    default:
+      return;
+  }
+};
 
 const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]) => {
   if (!reranker) return;
 
-  if (reranker.type === "none") {
-    return {
-      type: reranker.type
-    };
-  }
-
-  if (reranker.type === "customer_reranker") {
+  if (reranker.type === "chain") {
     return {
       type: reranker.type,
-      reranker_id: reranker.rerankerId
-    };
+      rerankers: reranker.rerankers.map(convertSingleReranker).filter(Boolean)
+    } as Query.ChainReranker;
   }
 
-  if (reranker.type === "mmr") {
-    return {
-      type: reranker.type,
-      diversity_bias: reranker.diversityBias
-    };
-  }
-
-  if (reranker.type === "userfn") {
-    // The user function reranker needs a function to run.
-    // If the user hasn't supplied it, don't send the reranker as part of the request.
-    return reranker.userFunction
-      ? {
-          type: reranker.type,
-          user_function: reranker.userFunction
-        }
-      : undefined;
-  }
+  return convertSingleReranker(reranker);
 };
+
 
 const convertCitations = (citations?: GenerationConfig["citations"]) => {
   if (!citations) return;

@@ -18,6 +18,11 @@ export namespace Query {
     user_function: string;
   };
 
+  export type ChainReranker = {
+    type: string;
+    rerankers: (NoneReranker | CustomerSpecificReranker | MmrReranker | UserFunctionReranker)[];
+  };
+
   export type SearchConfiguration = {
     corpora: {
       corpus_key: string;
@@ -36,7 +41,7 @@ export namespace Query {
       start_tag?: string;
       end_tag?: string;
     };
-    reranker?: NoneReranker | CustomerSpecificReranker | MmrReranker | UserFunctionReranker;
+    reranker?: NoneReranker | CustomerSpecificReranker | MmrReranker | UserFunctionReranker | ChainReranker
   };
 
   export type NoneCitations = {
