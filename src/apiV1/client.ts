@@ -51,10 +51,10 @@ export const streamQueryV1 = async (
           rerankerId: config.rerankerId,
           ...(config.rerankerId === 272725718
             ? {
-              mmrConfig: {
-                diversityBias: config.rerankDiversityBias,
-              },
-            }
+                mmrConfig: {
+                  diversityBias: config.rerankDiversityBias,
+                },
+              }
             : {}),
         },
       };
