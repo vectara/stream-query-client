@@ -9,9 +9,8 @@ export const generateStream = async (headers: Record<string, string>, body: stri
   });
 
   if (!response.ok) {
-    throw new Error(`Request failed (${response.statusText})`, {
-      cause: response.status
-    });
+    const errorMessage = await response.json();
+    throw new Error(`Request failed (${response.status})`, { cause: JSON.stringify(errorMessage) });
   }
 
   if (!response.body) throw new Error("Response body does not exist");
