@@ -10,6 +10,7 @@ export const generateStream = async (headers: Record<string, string>, body: stri
 
   if (!response.ok) {
     const errorMessage = await response.json();
+    console.log("errorMessage", errorMessage);
     throw new Error(`Request failed (${response.status})`, { cause: JSON.stringify(errorMessage) });
   }
 

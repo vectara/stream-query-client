@@ -16,7 +16,7 @@ export const createTestStreamingServer = ({
   return setupServer(
     http.post(`${DEFAULT_DOMAIN}${path}`, () => {
       if (shouldRequestsFail) {
-        return new HttpResponse(null, {
+        return new HttpResponse(JSON.stringify({ message: "Resource not found" }), {
           status: 404,
           statusText: "Not found"
         });

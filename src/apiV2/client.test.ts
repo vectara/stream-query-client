@@ -1,6 +1,6 @@
 import { SetupServerApi } from "msw/node";
 import { streamQueryV2 } from "./client";
-import { StreamQueryConfig, StreamEvent } from "./types";
+import { StreamQueryConfig, StreamEvent, GenericErrorEvent } from "./types";
 import { createTestStreamingServer } from "../common/createTestStreamingServer";
 import { chunks } from "./client.mocks";
 
@@ -177,15 +177,14 @@ describe("stream-query-client API v2", () => {
     });
 
     it("surfaces HTTP errors", async () => {
-      const handleEvent = jest.fn();
-
       const onStreamEvent = (event: StreamEvent) => {
-        handleEvent(event);
-
-        expect(handleEvent).toHaveBeenNthCalledWith(1, {
+        expect(event).toEqual({
           type: "genericError",
-          error: new Error("Request failed (Not found)")
+          error: new Error("Request failed (404)")
         });
+
+        // Make assertion against cause separately because Jest doesn't compare Error objects well.
+        expect((event as GenericErrorEvent).error.cause).toBe(JSON.stringify({ message: "Resource not found" }));
       };
 
       await streamQueryV2({ streamQueryConfig, onStreamEvent });
