@@ -24,9 +24,7 @@ const convertSingleReranker = (reranker?: Reranker) => {
     case "userfn":
       // The user function reranker needs a function to run.
       // If the user hasn't supplied it, don't send the reranker as part of the request.
-      return reranker.userFunction
-        ? { type: reranker.type, user_function: reranker.userFunction }
-        : undefined;
+      return reranker.userFunction ? { type: reranker.type, user_function: reranker.userFunction } : undefined;
     default:
       return;
   }
@@ -44,7 +42,6 @@ const convertReranker = (reranker?: StreamQueryConfig["search"]["reranker"]) => 
 
   return convertSingleReranker(reranker);
 };
-
 
 const convertCitations = (citations?: GenerationConfig["citations"]) => {
   if (!citations) return;
@@ -123,7 +120,7 @@ export const streamQueryV2 = async ({
     const {
       generationPresetName,
       maxUsedSearchResults,
-      promptText,
+      promptTemplate,
       maxResponseCharacters,
       responseLanguage,
       modelParameters,
@@ -134,7 +131,7 @@ export const streamQueryV2 = async ({
     body.generation = {
       generation_preset_name: generationPresetName,
       max_used_search_results: maxUsedSearchResults,
-      prompt_text: promptText,
+      prompt_template: promptTemplate,
       max_response_characters: maxResponseCharacters,
       response_language: responseLanguage,
       model_parameters: modelParameters && {

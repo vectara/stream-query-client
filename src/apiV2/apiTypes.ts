@@ -41,7 +41,7 @@ export namespace Query {
       start_tag?: string;
       end_tag?: string;
     };
-    reranker?: NoneReranker | CustomerSpecificReranker | MmrReranker | UserFunctionReranker | ChainReranker
+    reranker?: NoneReranker | CustomerSpecificReranker | MmrReranker | UserFunctionReranker | ChainReranker;
   };
 
   export type NoneCitations = {
@@ -67,7 +67,7 @@ export namespace Query {
   export type GenerationConfiguration = {
     generation_preset_name?: string;
     max_used_search_results?: number;
-    prompt_text?: string;
+    prompt_template?: string;
     max_response_characters?: number;
     response_language?: SummaryLanguage;
     model_parameters?: {
