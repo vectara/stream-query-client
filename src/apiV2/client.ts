@@ -64,11 +64,13 @@ const convertCitations = (citations?: GenerationConfig["citations"]) => {
 export const streamQueryV2 = async ({
   streamQueryConfig,
   onStreamEvent,
-  includeRawEvents = false
+  includeRawEvents = false,
+  requestSource
 }: {
   streamQueryConfig: StreamQueryConfig;
   onStreamEvent: StreamEventHandler;
   includeRawEvents?: boolean;
+  requestSource?: string;
 }) => {
   const {
     customerId,
@@ -170,6 +172,7 @@ export const streamQueryV2 = async ({
 
   if (apiKey) headers["x-api-key"] = apiKey;
   if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+  if (requestSource) headers["x-source"] = requestSource;
 
   const url = `${domain ?? DEFAULT_DOMAIN}${path}`;
 

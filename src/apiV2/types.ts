@@ -115,6 +115,7 @@ export type StreamQueryRequestHeaders = {
   ["Content-Type"]: string;
   ["x-api-key"]?: string;
   ["Authorization"]?: string;
+  ["x-source"]?: string;
 };
 
 export type StreamQueryRequest = {

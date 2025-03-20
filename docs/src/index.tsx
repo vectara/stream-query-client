@@ -38,7 +38,6 @@ const App = () => {
     };
 
     const onStreamUpdate = (update: ApiV1.StreamUpdate) => {
-      // console.log("v1", update);
       const { updatedText, details, references } = update;
 
       if (details?.chat) {
@@ -107,7 +106,8 @@ const App = () => {
 
     const queryStream = await streamQueryV2({
       streamQueryConfig,
-      onStreamEvent
+      onStreamEvent,
+      requestSource: "stream-query-docs"
     });
 
     cancelStream.current = queryStream?.cancelStream ?? null;
