@@ -90,7 +90,8 @@ export const streamQueryV2 = async ({
       reranker
     },
     generation,
-    chat
+    chat,
+    intelligentQueryRewriting
   } = streamQueryConfig;
 
   const body: Query.Body = {
@@ -115,7 +116,7 @@ export const streamQueryV2 = async ({
       },
       reranker: convertReranker(reranker)
     },
-    stream_response: true
+    stream_response: true,
   };
 
   if (generation) {
@@ -151,6 +152,10 @@ export const streamQueryV2 = async ({
     body.chat = {
       store: chat.store
     };
+  }
+
+  if (intelligentQueryRewriting) {
+    body.intelligent_query_rewriting =  intelligentQueryRewriting
   }
 
   let path;

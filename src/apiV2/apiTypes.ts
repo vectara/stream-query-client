@@ -91,6 +91,7 @@ export namespace Query {
     stream_response?: boolean;
     generation?: GenerationConfiguration;
     chat?: ChatConfiguration;
+    intelligent_query_rewriting?: boolean;
   };
 
   export type SearchResult = {
