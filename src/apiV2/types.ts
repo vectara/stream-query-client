@@ -108,6 +108,7 @@ export type StreamQueryConfig = {
     store?: boolean;
     conversationId?: string;
   };
+  intelligentQueryRewriting?: boolean
 };
 
 export type StreamQueryRequestHeaders = {
