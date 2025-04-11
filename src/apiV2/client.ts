@@ -92,7 +92,7 @@ export const streamQueryV2 = async ({
     generation,
     chat,
     intelligentQueryRewriting,
-    saveHistory,
+    saveHistory
   } = streamQueryConfig;
 
   const body: Query.Body = {
