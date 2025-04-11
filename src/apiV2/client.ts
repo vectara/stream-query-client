@@ -91,7 +91,8 @@ export const streamQueryV2 = async ({
     },
     generation,
     chat,
-    intelligentQueryRewriting
+    intelligentQueryRewriting,
+    saveHistory,
   } = streamQueryConfig;
 
   const body: Query.Body = {
@@ -156,6 +157,10 @@ export const streamQueryV2 = async ({
 
   if (intelligentQueryRewriting) {
     body.intelligent_query_rewriting =  intelligentQueryRewriting
+  }
+
+  if (saveHistory) {
+    body.save_history =  saveHistory
   }
 
   let path;
