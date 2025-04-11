@@ -109,6 +109,7 @@ export type StreamQueryConfig = {
     conversationId?: string;
   };
   intelligentQueryRewriting?: boolean
+  saveHistory?: boolean
 };
 
 export type StreamQueryRequestHeaders = {

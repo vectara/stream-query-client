@@ -92,6 +92,7 @@ export namespace Query {
     generation?: GenerationConfiguration;
     chat?: ChatConfiguration;
     intelligent_query_rewriting?: boolean;
+    save_history?: boolean;
   };
 
   export type SearchResult = {
